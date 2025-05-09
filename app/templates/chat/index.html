@@ -243,8 +243,8 @@
                         // Remove typing indicator
                         removeTypingIndicator(typingIndicator);
                         
-                        // Add assistant response
-                        addAssistantMessage(data.response);
+                        // Add assistant response - use the message property instead of response
+                        addAssistantMessage(data.message);
                         
                         // Show suggested listings if any
                         if (data.listings && data.listings.length > 0) {

@@ -5,6 +5,7 @@ import os
 import json
 import traceback
 import requests
+from openai import OpenAI
 
 # Create a blueprint for chat routes
 chat_bp = Blueprint('chat', __name__, url_prefix='/chat')
@@ -37,18 +38,11 @@ def ask():
         print(f"Using OpenAI API key: {masked_key}")
     else:
         print("No OpenAI API key found in Flask config")
-    
-    # Don't proceed if no API key is configured
-    if not api_key:
-        return jsonify({
-            'message': 'ChatGPT integration is not configured. Please set the OPENAI_API_KEY in your .env file.',
-            'listings': listings_data[:3]  # Return some default listings
-        })
+        # Fall back to mock response if no API key is available
+        return use_mock_response(user_message, listings_data)
     
     try:
-        # Always use the mock response for now to avoid API rate limiting
-        print("Using mock AI response due to API rate limiting")
-        # Prepare listing data for the mock response
+        # Prepare listing data for the AI context
         safe_listings_data = []
         for listing in listings_data:
             # Create a simplified version with only necessary fields
@@ -65,54 +59,68 @@ def ask():
             }
             safe_listings_data.append(safe_listing)
         
-        # Generate mock response
-        mock_response = generate_mock_response(user_message, safe_listings_data)
-        return jsonify({
-            'message': mock_response,
-            'listings': listings_data[:3] if listings_data else []
-        })
-        
-        # NOTE: The following code is temporarily commented out due to API rate limiting
-        # In a production environment, uncomment and use the OpenAI API
-        """
-        # Create the system message with context about our application
-        system_message = "..."
-        
-        # Create the message for OpenAI
-        messages = [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": f"User query: {user_message}\n\nAvailable listings: {json.dumps(safe_listings_data)}"}
-        ]
-        
-        # Use direct HTTP request to OpenAI API
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
-        
-        payload = {
-            "model": "gpt-3.5-turbo",
-            "messages": messages,
-            "max_tokens": 500
-        }
-        
-        # Make the API request directly
-        response = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers=headers,
-            json=payload
-        )
-        
-        # Process the response
-        if response.status_code == 200:
-            response_data = response.json()
-            assistant_message = response_data['choices'][0]['message']['content']
+        # Test the API key by making a simple call to OpenAI
+        try:
+            # Initialize the OpenAI client properly for the current SDK version
+            client = OpenAI(api_key=api_key)
+            
+            # Create a system prompt with the listings data
+            system_prompt = f"""You are a helpful housing assistant for UCR students. 
+            Your goal is to help students find suitable off-campus housing based on their requirements.
+            Here are the available listings:
+            {json.dumps(safe_listings_data, indent=2)}
+            
+            When suggesting housing options:
+            1. Match the student's requirements as closely as possible
+            2. Provide specific listings from the data above
+            3. Be helpful, friendly, and concise
+            4. Only recommend listings from the data provided
+            5. Format your response in markdown"""
+            
+            # Create a chat completion using the OpenAI API
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.7,
+                max_tokens=800
+            )
+            
+            # Extract the AI's response
+            ai_response = response.choices[0].message.content
+            
+            # Suggest relevant listings (up to 3) based on the AI's response
+            suggested_listings = []
+            
+            # Extract listing IDs mentioned in the response
+            for listing in safe_listings_data:
+                # Check if the listing title or ID is mentioned in the response
+                if f"**{listing.get('title')}**" in ai_response or f"ID: {listing.get('id')}" in ai_response:
+                    # Find the original listing with all fields
+                    for full_listing in listings_data:
+                        if full_listing.get('id') == listing.get('id'):
+                            suggested_listings.append(full_listing)
+                            break
+                
+                # Stop after we've found 3 listings
+                if len(suggested_listings) >= 3:
+                    break
+            
+            # If no listings were explicitly mentioned, include the first 3
+            if not suggested_listings and listings_data:
+                suggested_listings = listings_data[:3]
             
             return jsonify({
-                'message': assistant_message,
-                'listings': listings_data[:3] if listings_data else []
+                'message': ai_response,
+                'listings': suggested_listings
             })
-        """
+            
+        except Exception as e:
+            print(f"OpenAI API error: {str(e)}")
+            print("Falling back to mock response")
+            return use_mock_response(user_message, listings_data)
     
     except Exception as e:
         # Print full exception details for debugging
@@ -121,9 +129,37 @@ def ask():
         
         # Handle any errors by returning a generic response
         return jsonify({
-            'message': f"I'm sorry, I couldn't process that request due to an error.",
+            'message': f"I'm sorry, I couldn't process that request due to an error: {str(e)}",
             'listings': listings_data[:3] if listings_data else []
         }), 500
+
+def use_mock_response(user_message, listings_data):
+    """Helper function to use mock response when OpenAI API is unavailable"""
+    print("Using mock AI response due to API quota limitations")
+    
+    # Prepare listing data for the mock response
+    safe_listings_data = []
+    for listing in listings_data:
+        # Create a simplified version with only necessary fields
+        safe_listing = {
+            'id': listing.get('id'),
+            'title': listing.get('title'),
+            'description': listing.get('description', ''),
+            'address': listing.get('address', ''),
+            'price': listing.get('price', 0),
+            'bedrooms': listing.get('bedrooms', 0),
+            'bathrooms': listing.get('bathrooms', 0),
+            'property_type': listing.get('property_type', ''),
+            'amenities': listing.get('amenities', [])
+        }
+        safe_listings_data.append(safe_listing)
+    
+    # Generate mock response
+    mock_response = generate_mock_response(user_message, safe_listings_data)
+    return jsonify({
+        'message': mock_response,
+        'listings': listings_data[:3] if listings_data else []
+    })
 
 def generate_mock_response(query, listings):
     """Generate a mock AI response for development purposes"""
