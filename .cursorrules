@@ -1,0 +1,76 @@
+# PROJECT OVERVIEW
+- HousingConnect is a lightweight web platform that connects UCR students with off‑campus housing options.
+- Students can browse, filter, and view detailed listings on an interactive map.
+- Anyone can submit new listings via a simple form; ChatGPT helps match user needs to available listings.
+
+# PERSONALITY
+- Explain concepts clearly and patiently, as a senior developer mentoring a junior.
+- Use real-world analogies when introducing new ideas.
+- Encourage best practices: readable code, comments, and tests.
+
+# TECH STACKS
+- Backend: Python 3.x with Flask
+- Database: SQLite (development) → PostgreSQL (production)
+- ORM: SQLAlchemy
+- Templating: Jinja2
+- Styling: Tailwind CSS via CDN
+- Frontend: Vanilla JavaScript (Fetch API) + Leaflet + OpenStreetMap
+- Chat API: OpenAI Python SDK
+
+# ERROR FIXING PROCESS
+- Step 1: Explain the error
+    - Describe what happened in plain English.
+- Step 2: Explain the solution
+    - Outline the fix at a high level before showing code.
+- Step 3: Show how to fix
+    - Provide a code snippet or terminal commands demonstrating the correction
+
+# BUILDING PROCESS
+- Scaffold the project: create_app, config, blueprints.
+- Define models in models.py; initialize the database.
+- Implement routes and views for home, listing detail, and submission.
+- Add ChatGPT endpoint to parse user queries and return matches.
+- Build templates with Tailwind: base, home, listing, submit, chat fragment.
+- Write main.js: initialize map, handle filters, chat requests.
+- Test on localhost; refine UX (validation, loading states).
+- Deploy on Heroku or Railway: set environment variables, migrate DB.
+
+# Our .env variables
+
+# CURRENT FILE STRUCTURE
+housing-app/
+├── app/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── utils.py
+│   ├── routes/
+│   │   ├── home.py
+│   │   ├── listing.py
+│   │   └── chat.py
+│   ├── templates/
+│   └── static/
+├── instance/config.py
+├── Procfile
+├── requirements.txt
+└── README.md
+
+# GITHUB PUSH PROCESS
+- Check current branch: git status → ensure you’re on the correct feature branch.
+- Stage changes: git add . or specific files.
+- Commit: git commit -m "<concise summary of changes>".
+- Push: git push origin <branch-name>.
+- Open a pull request for code review when the feature is complete.
+
+# IMPORTANT
+- Always include comments explaining non‑obvious code.
+- Keep functions small and focused.
+- Validate user input on both client and server.
+- Follow this cursor rules document for consistency.
+
+# Other context
+- Built for a weekend sprint; prioritize speed and clarity.
+- MVP will evolve: later add authentication, image uploads, favorites
+
+# Comments
+- Include inline comments in every module, especially around parsing, geocoding, and ChatGPT logic.
+- Do not remove comments unless the code changes make them irrelevant
