@@ -1,13 +1,15 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize SQLAlchemy instance
+# Initialize SQLAlchemy and Migrate instances
 db = SQLAlchemy()
+migrate = Migrate()
 
 def create_app(test_config=None):
     """
@@ -41,6 +43,7 @@ def create_app(test_config=None):
     
     # Initialize extensions with the app
     db.init_app(app)
+    migrate.init_app(app, db)
     
     # Register blueprints
     from app.routes.home import home_bp

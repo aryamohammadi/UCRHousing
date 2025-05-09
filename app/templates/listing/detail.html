@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}{{ listing.title }} | UCR HousingConnect{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Listing Details -->
+    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-between items-start mb-4">
+            <h1 class="text-2xl font-bold text-gray-900">{{ listing.title }}</h1>
+            <span class="text-2xl font-bold text-blue-600">${{ "%.2f"|format(listing.price) }}</span>
+        </div>
+        
+        <p class="text-gray-600 mb-4">{{ listing.address }}</p>
+        
+        <!-- Property Details -->
+        <div class="flex flex-wrap gap-4 mb-6 text-sm">
+            <div class="bg-gray-100 px-3 py-1 rounded-full">
+                <span class="font-medium">{{ listing.bedrooms }}</span> {% if listing.bedrooms == 1 %}Bedroom{% else %}Bedrooms{% endif %}
+            </div>
+            <div class="bg-gray-100 px-3 py-1 rounded-full">
+                <span class="font-medium">{{ listing.bathrooms }}</span> {% if listing.bathrooms == 1 %}Bathroom{% else %}Bathrooms{% endif %}
+            </div>
+            {% if listing.square_feet %}
+            <div class="bg-gray-100 px-3 py-1 rounded-full">
+                <span class="font-medium">{{ listing.square_feet }}</span> sq ft
+            </div>
+            {% endif %}
+            <div class="bg-gray-100 px-3 py-1 rounded-full capitalize">
+                {{ listing.property_type }}
+            </div>
+            {% if listing.available_date %}
+            <div class="bg-gray-100 px-3 py-1 rounded-full">
+                Available: {{ listing.available_date.strftime('%b %d, %Y') }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Description -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-2">Description</h2>
+            <div class="text-gray-700 space-y-2">
+                {% for paragraph in listing.description.split('\n') %}
+                    <p>{{ paragraph }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Amenities -->
+        {% if listing.amenities %}
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-2">Amenities</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {% for amenity in listing.amenities %}
+                <div class="flex items-center">
+                    <svg class="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="ml-2">{{ amenity.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Contact Information -->
+        <div>
+            <h2 class="text-lg font-semibold mb-2">Contact Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Email</p>
+                    <p class="font-medium">{{ listing.contact_email }}</p>
+                </div>
+                {% if listing.contact_phone %}
+                <div>
+                    <p class="text-sm text-gray-500">Phone</p>
+                    <p class="font-medium">{{ listing.contact_phone }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Map and Additional Info -->
+    <div class="lg:col-span-1 space-y-6">
+        <!-- Map Container -->
+        <div id="detail-map" class="h-64 rounded-lg shadow-md" 
+             data-lat="{{ listing.latitude }}" 
+             data-lng="{{ listing.longitude }}"
+             data-title="{{ listing.title }}"></div>
+        
+        <!-- Posted Date -->
+        <div class="bg-white p-4 rounded-lg shadow-md">
+            <p class="text-sm text-gray-500">Posted on</p>
+            <p class="font-medium">{{ listing.created_at.strftime('%B %d, %Y') }}</p>
+            {% if listing.created_at != listing.updated_at %}
+            <p class="text-sm text-gray-500 mt-1">Updated on</p>
+            <p class="font-medium">{{ listing.updated_at.strftime('%B %d, %Y') }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Similar Listings (placeholder) -->
+        <div class="bg-white p-4 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold mb-2">Similar Listings</h3>
+            <p class="text-gray-500 text-sm">Coming soon...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map
+        const detailMap = document.getElementById('detail-map');
+        const lat = parseFloat(detailMap.getAttribute('data-lat')) || 33.9737;
+        const lng = parseFloat(detailMap.getAttribute('data-lng')) || -117.3281;
+        const title = detailMap.getAttribute('data-title');
+        
+        const map = L.map('detail-map').setView([lat, lng], 15);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Add a marker for the listing
+        L.marker([lat, lng])
+            .addTo(map)
+            .bindPopup(`<strong>${title}</strong><br>${"$" + {{ listing.price }}.toFixed(2)}`);
+    });
+</script>
+{% endblock %} 

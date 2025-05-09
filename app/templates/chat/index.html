@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Housing Assistant | UCR HousingConnect{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="border-b border-gray-200 px-4 py-3">
+            <h1 class="text-xl font-semibold">Housing Assistant</h1>
+            <p class="text-sm text-gray-600">
+                Describe your ideal housing situation, and I'll help you find matching listings.
+            </p>
+        </div>
+        
+        <!-- Chat Messages Container -->
+        <div id="chat-messages" class="p-4 h-96 overflow-y-auto space-y-4">
+            <!-- Initial message -->
+            <div class="flex items-start">
+                <div class="flex-shrink-0 mr-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                        A
+                    </div>
+                </div>
+                <div class="bg-blue-100 rounded-lg p-3 max-w-[80%]">
+                    <p>
+                        Hi there! I'm your UCR Housing Assistant. I can help you find the perfect off-campus housing 
+                        based on your preferences. Tell me what you're looking for - perhaps mention your budget, 
+                        how many bedrooms you need, preferred location, or any other requirements.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Suggested Listings Container (initially hidden) -->
+        <div id="suggested-listings" class="hidden px-4 py-3 border-t border-gray-200">
+            <h2 class="text-lg font-medium mb-3">Suggested Listings</h2>
+            <div id="listings-container" class="space-y-3"></div>
+        </div>
+        
+        <!-- Input Area -->
+        <div class="px-4 py-3 border-t border-gray-200">
+            <form id="chat-form" class="flex">
+                <input type="text" id="user-input" 
+                       class="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                       placeholder="Describe what you're looking for..." required>
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-md">
+                    Send
+                </button>
+            </form>
+            <p class="text-xs text-gray-500 mt-2">
+                Example: "I need a 2-bedroom apartment near campus under $1500 with parking"
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Listing Template (Hidden) -->
+<template id="listing-template">
+    <div class="listing-item bg-white border border-gray-200 rounded-md p-3">
+        <div class="flex justify-between">
+            <h3 class="text-md font-medium listing-title"></h3>
+            <span class="font-bold text-blue-600 listing-price"></span>
+        </div>
+        <p class="text-sm text-gray-600 listing-address"></p>
+        <div class="flex space-x-4 mt-1 text-xs text-gray-500">
+            <span class="listing-bedrooms"></span>
+            <span class="listing-bathrooms"></span>
+            <span class="listing-property-type"></span>
+        </div>
+        <div class="mt-2">
+            <a href="#" class="listing-link text-sm text-blue-600 hover:text-blue-800">View Details →</a>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %} 

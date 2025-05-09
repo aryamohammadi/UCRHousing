@@ -1,0 +1,74 @@
+/* Main CSS for UCR HousingConnect */
+
+/* Map container */
+#map, #detail-map {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    z-index: 1;
+}
+
+/* Custom map marker popups */
+.leaflet-popup-content {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.leaflet-popup-content strong {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+/* Loading indicator */
+.loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.loading-indicator:after {
+    content: " ";
+    display: block;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 6px solid #2563eb;
+    border-color: #2563eb transparent #2563eb transparent;
+    animation: loader 1.2s linear infinite;
+}
+
+@keyframes loader {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Fix for Tailwind forms and Leaflet controls */
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Chat message transition */
+.chat-message-enter {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.chat-message-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 200ms, transform 200ms;
+}
+
+/* Fix for mobile viewport issues */
+@media (max-width: 640px) {
+    #map, #detail-map {
+        min-height: 300px;
+    }
+} 
