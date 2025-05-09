@@ -56,12 +56,72 @@
         to { transform: rotate(360deg); }
     }
     
+    /* View toggle styles */
+    .view-tabs {
+        @apply flex rounded-md overflow-hidden bg-white/80 dark:bg-gray-800/80 shadow-md;
+    }
+    
+    .view-tab {
+        @apply px-3 py-1 text-sm font-medium transition-colors;
+    }
+    
+    .view-tab.active {
+        @apply bg-ucr-blue-700 text-white;
+    }
+    
+    .view-tab:not(.active) {
+        @apply text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700;
+    }
+    
+    /* Listings count and view toggle */
+    .listings-header {
+        @apply flex justify-between items-center mb-4;
+    }
+    
+    /* All listings view */
+    .all-listings-view {
+        display: none;
+        width: 100%;
+        overflow-y: auto;
+        max-height: calc(100vh - 250px);
+    }
+    
+    .all-listings-view.active {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    
+    /* Listings container scrolling */
+    #listings-container {
+        max-height: calc(100vh - 250px);
+        overflow-y: auto;
+    }
+    
+    /* Special state for all listings mode */
+    .listings-panel.all-listings-mode {
+        height: calc(100vh - 190px);
+        overflow-y: auto;
+        padding-bottom: 2rem;
+    }
+    
     @media (max-width: 1023px) {
         .map-container {
             height: 50vh;
             position: sticky;
             top: 0;
             z-index: 10;
+        }
+        
+        .map-container.hidden {
+            display: none;
+        }
+        
+        /* Improve mobile scrolling */
+        #listings-container, 
+        .all-listings-view {
+            max-height: none;
+            overflow-y: visible;
         }
     }
     
@@ -79,6 +139,10 @@
             height: 100%;
         }
         
+        .map-container.hidden {
+            display: none;
+        }
+        
         .listings-panel {
             overflow-y: auto;
             max-height: 100%;
@@ -88,6 +152,15 @@
         #map {
             height: 100% !important;
         }
+        
+        .all-listings-view.active {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            height: 100%;
+            overflow-y: auto;
+            padding-bottom: 4rem;
+        }
     }
 </style>
 {% endblock %}
@@ -95,7 +168,7 @@
 {% block content %}
 <div class="split-layout">
     <!-- Sidebar: Filters Panel -->
-    <div class="sidebar-filters mr-4 sticky top-4 self-start">
+    <div id="sidebar-filters" class="mr-4 sticky top-4 self-start">
         <div class="card mb-6">
             <div class="card-header">
                 <h2 class="text-lg font-semibold text-ucr-blue-800 dark:text-ucr-blue-300 font-display">Find Your Perfect Home</h2>
@@ -166,10 +239,10 @@
                         </label>
                         <select name="property_type" id="property_type" class="form-select">
                             <option value="" {% if property_type == '' %}selected{% endif %}>Any</option>
-                            <option value="apartment" {% if property_type == 'apartment' %}selected{% endif %}>Apartment</option>
-                            <option value="house" {% if property_type == 'house' %}selected{% endif %}>House</option>
-                            <option value="room" {% if property_type == 'room' %}selected{% endif %}>Room</option>
-                            <option value="townhouse" {% if property_type == 'townhouse' %}selected{% endif %}>Townhouse</option>
+                            <option value="Apartment" {% if property_type == 'Apartment' %}selected{% endif %}>Apartment</option>
+                            <option value="House" {% if property_type == 'House' %}selected{% endif %}>House</option>
+                            <option value="Room" {% if property_type == 'Room' %}selected{% endif %}>Room</option>
+                            <option value="Townhouse" {% if property_type == 'Townhouse' %}selected{% endif %}>Townhouse</option>
                         </select>
                     </div>
                     
@@ -200,21 +273,23 @@
     </div>
     
     <!-- Main Content: Map and Listings -->
-    <div class="main-content flex flex-col lg:flex-row">
+    <div id="main-content" class="flex flex-col lg:flex-row">
         <!-- Map Container with View Controls -->
-        <div class="map-container lg:w-full lg:flex-1">
+        <div id="map-container" class="map-container lg:w-full lg:flex-1">
             <!-- Map View Toggle -->
-            <div class="map-controls bg-white/80 dark:bg-gray-800/80 rounded-md shadow-md p-1 flex">
-                <button id="map-view" class="px-3 py-1 text-sm font-medium rounded-md bg-ucr-blue-700 text-white transition-colors">
-                    <i class="fas fa-map mr-1"></i> Map
-                </button>
-                <button id="satellite-view" class="px-3 py-1 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors">
-                    <i class="fas fa-satellite-dish mr-1"></i> Satellite
-                </button>
+            <div class="map-controls">
+                <div class="view-tabs">
+                    <button id="map-view" class="view-tab active">
+                        <i class="fas fa-map mr-1"></i> Map
+                    </button>
+                    <button id="satellite-view" class="view-tab">
+                        <i class="fas fa-satellite-dish mr-1"></i> Satellite
+                    </button>
+                </div>
             </div>
             
             <!-- Map Canvas -->
-            <div id="map" class="h-96 w-full rounded-lg z-0"></div>
+            <div id="map" class="h-full w-full rounded-lg z-0"></div>
             
             <!-- Zoom to UCR Button -->
             <button id="zoom-to-ucr" class="absolute bottom-4 left-4 z-800 bg-white/80 dark:bg-gray-800/80 rounded-md shadow-md px-3 py-2 text-sm font-medium text-ucr-blue-700 dark:text-ucr-blue-300 hover:bg-ucr-blue-50 dark:hover:bg-ucr-blue-900 transition-colors">
@@ -222,13 +297,26 @@
             </button>
         </div>
         
-        <!-- Listings Panel (mobile: below map, desktop: right side) -->
+        <!-- Listings Panel -->
         <div class="listings-panel lg:pl-6 lg:w-full lg:flex-1 mt-6 lg:mt-0">
-            <!-- Found Listings Count -->
-            <div id="listings-count" class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4"></div>
+            <!-- Listings Header with Count and View Toggle -->
+            <div class="listings-header">
+                <!-- Found Listings Count -->
+                <div id="listings-count" class="text-lg font-medium text-gray-700 dark:text-gray-300"></div>
+                
+                <!-- All Listings Toggle Button -->
+                <button id="listings-view" class="btn-outline text-sm">
+                    <i class="fas fa-list mr-1"></i> View All Listings
+                </button>
+            </div>
             
             <!-- Listings Grid with Animation -->
             <div id="listings-container" class="grid grid-cols-1 gap-4"></div>
+            
+            <!-- All Listings View (grid layout) -->
+            <div id="all-listings-view" class="all-listings-view">
+                <!-- Will be filled by JavaScript -->
+            </div>
             
             <!-- Loading State -->
             <div id="loading-indicator" class="loading-indicator hidden"></div>
@@ -277,53 +365,4 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/map.js') }}"></script>
-<script>
-    // View toggle functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const mapBtn = document.getElementById('map-view');
-        const satelliteBtn = document.getElementById('satellite-view');
-        const zoomToUcrBtn = document.getElementById('zoom-to-ucr');
-        
-        if (mapBtn && satelliteBtn && window.map) {
-            mapBtn.addEventListener('click', function() {
-                window.setMapStyle('streets');
-                mapBtn.classList.add('bg-ucr-blue-700', 'text-white');
-                mapBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
-                satelliteBtn.classList.remove('bg-ucr-blue-700', 'text-white');
-                satelliteBtn.classList.add('text-gray-600', 'hover:bg-gray-100');
-            });
-            
-            satelliteBtn.addEventListener('click', function() {
-                window.setMapStyle('satellite');
-                satelliteBtn.classList.add('bg-ucr-blue-700', 'text-white');
-                satelliteBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
-                mapBtn.classList.remove('bg-ucr-blue-700', 'text-white');
-                mapBtn.classList.add('text-gray-600', 'hover:bg-gray-100');
-            });
-            
-            // Zoom to UCR campus button
-            if (zoomToUcrBtn) {
-                zoomToUcrBtn.addEventListener('click', function() {
-                    window.map.setView([33.9737, -117.3281], 15);
-                });
-            }
-        }
-        
-        // Make listings responsive in the split layout
-        function adjustLayout() {
-            const splitLayout = document.querySelector('.split-layout');
-            if (window.innerWidth >= 1024) {
-                splitLayout.classList.add('grid');
-            } else {
-                splitLayout.classList.remove('grid');
-            }
-        }
-        
-        // Initial layout adjustment
-        adjustLayout();
-        
-        // Adjust on resize
-        window.addEventListener('resize', adjustLayout);
-    });
-</script>
 {% endblock %} 

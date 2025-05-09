@@ -48,6 +48,10 @@ def create_app(test_config=None):
         OPENAI_API_KEY=openai_key
     )
     
+    # Development-specific configuration
+    if os.environ.get('FLASK_ENV') == 'development':
+        print(f"Development mode active")
+    
     # Print the database URI for debugging
     print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
     
@@ -66,10 +70,12 @@ def create_app(test_config=None):
     from app.routes.home import home_bp
     from app.routes.listing import listing_bp
     from app.routes.chat import chat_bp
+    from app.routes.admin import admin_bp
     
     app.register_blueprint(home_bp)
     app.register_blueprint(listing_bp)
     app.register_blueprint(chat_bp)
+    app.register_blueprint(admin_bp)
     
     # A simple route to confirm the app is working
     @app.route('/ping')

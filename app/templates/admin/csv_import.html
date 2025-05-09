@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Import CSV - UCR Housing Connect{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-blue-800">CSV Import</h1>
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" 
+               class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mb-4 p-4 rounded {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Import Listings from CSV</h2>
+        
+        <div class="mb-6">
+            <p class="text-gray-600 mb-2">
+                Upload a CSV file with housing listings to import into the system.
+            </p>
+            <p class="text-gray-600 mb-4">
+                <a href="{{ url_for('admin.export_template') }}" class="text-blue-600 hover:underline">
+                    Download our CSV template
+                </a> 
+                to see the required format.
+            </p>
+            
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+                <p class="text-blue-700">
+                    <strong>Required columns:</strong> title, address, price, bedrooms
+                </p>
+                <p class="text-blue-700 mt-1">
+                    <strong>Optional columns:</strong> description, bathrooms, square_feet, property_type, amenities, contact_email, contact_phone
+                </p>
+            </div>
+        </div>
+        
+        <form action="{{ url_for('admin.import_csv') }}" method="POST" enctype="multipart/form-data" class="mb-4">
+            <div class="mb-4">
+                <label for="csv_file" class="block text-gray-700 text-sm font-bold mb-2">
+                    CSV File
+                </label>
+                <input type="file" 
+                       name="csv_file" 
+                       id="csv_file" 
+                       accept=".csv" 
+                       class="border border-gray-300 p-2 w-full rounded"
+                       required>
+            </div>
+            
+            <div class="flex items-center">
+                <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Upload and Import
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">CSV Format Instructions</h2>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Column</th>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Required</th>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Example</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">title</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Yes</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">The listing title</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">"2-Bed Apartment near UCR"</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">address</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Yes</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Complete address</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">"1234 University Ave, Riverside, CA 92507"</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">price</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Yes</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Monthly rent</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1400</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">bedrooms</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Yes</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Number of bedrooms</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">description</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">No</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Detailed description</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">"Modern apartment with great amenities"</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">bathrooms</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">No</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Number of bathrooms</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">property_type</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">No</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Type of property</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">"Apartment", "House", "Condo", "Studio"</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">amenities</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">No</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Comma-separated list</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">"Pool, Parking, Air Conditioning"</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

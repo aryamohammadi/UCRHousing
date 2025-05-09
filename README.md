@@ -9,6 +9,9 @@ A lightweight web platform that connects UCR students with off-campus housing op
 - Filtering system to find properties that match specific criteria
 - Form for property owners to submit new listings
 - AI assistant that helps match student needs with available listings
+- Admin dashboard for data management
+- Zillow API integration for real housing data
+- CSV import/export for batch listing management
 
 ## Technology Stack
 
@@ -74,6 +77,30 @@ To apply future migrations:
 flask db migrate -m "Description of changes"
 flask db upgrade
 ```
+
+### Importing Housing Data
+
+The application supports multiple ways to import housing data:
+
+1. **Zillow API Integration**:
+
+   - Sign up at [RapidAPI](https://rapidapi.com/) and subscribe to a Zillow API
+   - Set your `RAPIDAPI_KEY` in the `.env` file
+   - Use the admin dashboard or run: `python import_housing_data.py`
+
+2. **CSV Import**:
+
+   - Use the template at `listing_template.csv`
+   - Fill in your listing data
+   - Import via admin dashboard or run: `python import_housing_data.py your_data.csv`
+
+3. **Sample Data**:
+
+   - Run `python seed_data.py` to populate with sample listings
+
+4. **Automated Updates**:
+   - Set up a cron job to run `update_housing_data.sh` periodically
+   - Example: `0 0 * * 0 /path/to/update_housing_data.sh` (weekly)
 
 ### Running the Application
 

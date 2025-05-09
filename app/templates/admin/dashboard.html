@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - UCR Housing Connect{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-blue-800">Admin Dashboard</h1>
+        <div class="flex gap-2">
+            <a href="{{ url_for('admin.import_data') }}" 
+               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+                Refresh All Listings
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mb-4 p-4 rounded {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Stats cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">Total Listings</h2>
+            <p class="text-3xl font-bold text-blue-600">{{ listing_count }}</p>
+            <div class="mt-2 text-sm text-gray-500">
+                <p>Zillow API: {{ zillow_count }}</p>
+                <p>Sample Data: {{ sample_count }}</p>
+                <p>User Submitted: {{ user_count }}</p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">Available Amenities</h2>
+            <p class="text-3xl font-bold text-blue-600">{{ amenities|length }}</p>
+            <p class="mt-2 text-sm text-gray-500">Used for filtering listings</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">Latest Updates</h2>
+            {% if last_import %}
+                <p class="text-md font-medium text-blue-600">Last Import: {{ last_import }}</p>
+                <p class="text-sm text-gray-500">Added {{ last_import_count }} listings</p>
+            {% else %}
+                <p class="text-md font-medium text-gray-500">No imports recorded</p>
+            {% endif %}
+            {% if newest_listing_date %}
+                <p class="text-md font-medium text-blue-600 mt-2">Newest listing: {{ newest_listing_date.strftime('%Y-%m-%d') }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Import options section -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Data Import Options</h2>
+        <p class="text-gray-600 mb-4">
+            Use one of the following methods to import listings:
+        </p>
+        
+        <!-- Import methods grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
+            <!-- Zillow API option -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h3 class="font-bold text-lg mb-2">Zillow API</h3>
+                <p class="text-sm text-gray-600 mb-3">
+                    Import listings from Zillow via RapidAPI integration.
+                </p>
+                <p class="text-xs text-gray-500 mb-3">
+                    Status: <span class="{% if api_key_status == 'Configured' %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ api_key_status }}
+                    </span>
+                </p>
+                <div class="mt-auto">
+                    <a href="{{ url_for('admin.import_zillow') }}" 
+                       class="{% if api_key_status == 'Configured' %}bg-blue-600 hover:bg-blue-700{% else %}bg-gray-400 cursor-not-allowed{% endif %} text-white text-sm text-center py-2 px-4 rounded block">
+                        Import from Zillow
+                    </a>
+                </div>
+            </div>
+            
+            <!-- CSV option -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h3 class="font-bold text-lg mb-2">CSV Import</h3>
+                <p class="text-sm text-gray-600 mb-3">
+                    Import listings from a CSV file.
+                </p>
+                <p class="text-xs text-gray-500 mb-3">
+                    Download our <a href="{{ url_for('admin.export_template') }}" class="text-blue-600 hover:underline">CSV template</a> to get started.
+                </p>
+                <div class="mt-auto">
+                    <a href="{{ url_for('admin.import_csv') }}" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white text-sm text-center py-2 px-4 rounded block">
+                        Upload CSV
+                    </a>
+                </div>
+            </div>
+            
+            <!-- All sources option -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h3 class="font-bold text-lg mb-2">All Sources</h3>
+                <p class="text-sm text-gray-600 mb-3">
+                    Import from all available data sources.
+                </p>
+                <p class="text-xs text-gray-500 mb-3">
+                    This will refresh data from Zillow API (if configured) and sample data.
+                </p>
+                <div class="mt-auto">
+                    <a href="{{ url_for('admin.import_data') }}" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white text-sm text-center py-2 px-4 rounded block">
+                        Refresh All Listings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data sources section -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Available Data Sources</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Listings</th>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">UCR Housing Connect Sample Data</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Active</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sample_count }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Default listings for demonstration</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Manual submissions</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Active</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user_count }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">User-submitted listings</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Zillow API</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <span class="{% if api_key_status == 'Configured' %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ api_key_status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ zillow_count }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if api_key_status != 'Configured' %}
+                                Set RAPIDAPI_KEY environment variable
+                            {% else %}
+                                Last updated: {{ last_import or 'Never' }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">CSV Import</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Available</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <a href="{{ url_for('admin.import_csv') }}" class="text-blue-600 hover:underline">Upload CSV file</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

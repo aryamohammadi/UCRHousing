@@ -52,16 +52,76 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    // Reference to the listings container and template
+    // Reference to DOM elements
+    const mapContainer = document.getElementById('map-container');
     const listingsContainer = document.getElementById('listings-container');
+    const allListingsView = document.getElementById('all-listings-view');
     const listingTemplate = document.getElementById('listing-template');
     const listingsCount = document.getElementById('listings-count');
-    
-    // Reference to the filter form
     const filterForm = document.getElementById('filter-form');
+    
+    // View control buttons
+    const mapViewBtn = document.getElementById('map-view');
+    const satelliteViewBtn = document.getElementById('satellite-view');
+    const listingsViewBtn = document.getElementById('listings-view');
     
     // Marker layer group to manage property markers
     const markers = L.layerGroup().addTo(map);
+    
+    // State variables
+    let currentView = 'map';
+    
+    /**
+     * Switch between map, satellite, and listings views
+     */
+    function switchView(view) {
+        currentView = view;
+        
+        // Update active class on view buttons
+        const viewButtons = [mapViewBtn, satelliteViewBtn, listingsViewBtn];
+        viewButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // Show/hide map and listings based on selected view
+        if (view === 'map') {
+            mapViewBtn.classList.add('active');
+            setMapStyle('streets');
+            mapContainer.classList.remove('hidden');
+            allListingsView.classList.remove('active');
+            listingsContainer.style.display = 'grid';
+            document.querySelector('.listings-panel').classList.remove('all-listings-mode');
+            
+            // Trigger map resize event to fix any rendering issues
+            setTimeout(() => map.invalidateSize(), 100);
+        } 
+        else if (view === 'satellite') {
+            satelliteViewBtn.classList.add('active');
+            setMapStyle('satellite');
+            mapContainer.classList.remove('hidden');
+            allListingsView.classList.remove('active');
+            listingsContainer.style.display = 'grid';
+            document.querySelector('.listings-panel').classList.remove('all-listings-mode');
+            
+            // Trigger map resize event to fix any rendering issues
+            setTimeout(() => map.invalidateSize(), 100);
+        } 
+        else if (view === 'listings') {
+            listingsViewBtn.classList.add('active');
+            mapContainer.classList.add('hidden');
+            listingsContainer.style.display = 'none';
+            allListingsView.classList.add('active');
+            document.querySelector('.listings-panel').classList.add('all-listings-mode');
+        }
+    }
+    
+    // Set up event listeners for view switching
+    mapViewBtn.addEventListener('click', () => switchView('map'));
+    satelliteViewBtn.addEventListener('click', () => switchView('satellite'));
+    listingsViewBtn.addEventListener('click', () => switchView('listings'));
+    
+    // Add event listener for the zoom to UCR button
+    document.getElementById('zoom-to-ucr').addEventListener('click', function() {
+        map.setView([UCR_LAT, UCR_LNG], DEFAULT_ZOOM);
+    });
     
     // Create custom marker icon
     function createMarkerIcon(price) {
@@ -86,6 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadListings(filters = {}) {
         // Show loading indicator
         listingsContainer.innerHTML = '<div class="loading-indicator"></div>';
+        allListingsView.innerHTML = '<div class="loading-indicator"></div>';
         
         // Build query string from filters
         const queryParams = new URLSearchParams();
@@ -106,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Clear existing markers and listings
             markers.clearLayers();
             listingsContainer.innerHTML = '';
+            allListingsView.innerHTML = '';
             
             // Update the count display
             if (listingsCount) {
@@ -117,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Display message if no listings found
             if (listings.length === 0) {
-                listingsContainer.innerHTML = `
+                const noListingsMsg = `
                     <div class="bg-yellow-50 dark:bg-yellow-900/30 p-6 rounded-md text-center border border-yellow-200 dark:border-yellow-800">
                         <div class="text-yellow-600 dark:text-yellow-400 text-4xl mb-3">
                             <i class="fas fa-search"></i>
@@ -126,6 +188,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p class="text-sm text-yellow-600 dark:text-yellow-400 mt-1">Try adjusting your filters or check back later.</p>
                     </div>
                 `;
+                
+                listingsContainer.innerHTML = noListingsMsg;
+                allListingsView.innerHTML = noListingsMsg;
                 return;
             }
             
@@ -164,9 +229,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 
-                // Create listing card
+                // Create listing card for map view
                 const listingCard = createListingCard(listing, markerRefs[listing.id]);
                 listingsContainer.appendChild(listingCard);
+                
+                // Create listing card for all listings view
+                const allListingCard = createListingCard(listing, markerRefs[listing.id]);
+                allListingsView.appendChild(allListingCard);
             });
             
             // Adjust map to show all markers
@@ -177,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Error loading listings:', error);
-            listingsContainer.innerHTML = `
+            const errorMsg = `
                 <div class="bg-red-50 dark:bg-red-900/30 p-6 rounded-md text-center border border-red-200 dark:border-red-800">
                     <div class="text-red-600 dark:text-red-400 text-4xl mb-3">
                         <i class="fas fa-exclamation-circle"></i>
@@ -186,6 +255,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="text-sm text-red-600 dark:text-red-400 mt-1">Please try again later.</p>
                 </div>
             `;
+            
+            listingsContainer.innerHTML = errorMsg;
+            allListingsView.innerHTML = errorMsg;
         }
     }
     
@@ -231,6 +303,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             card.addEventListener('click', () => {
+                // Only switch to map view if in listings view
+                if (currentView === 'listings') {
+                    switchView('map');
+                }
+                
                 map.setView(marker.getLatLng(), 16);
                 marker.openPopup();
                 marker._icon.classList.add('marker-bounce');
@@ -248,48 +325,28 @@ document.addEventListener('DOMContentLoaded', function() {
         filterForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Collect filter values
-            const formData = new FormData(filterForm);
+            // Gather filter values
             const filters = {
-                min_price: formData.get('min_price'),
-                max_price: formData.get('max_price'),
-                bedrooms: formData.get('bedrooms'),
-                bathrooms: formData.get('bathrooms'),
-                property_type: formData.get('property_type'),
-                amenities: formData.getAll('amenities')
+                min_price: document.getElementById('min_price').value,
+                max_price: document.getElementById('max_price').value,
+                bedrooms: document.getElementById('bedrooms').value,
+                bathrooms: document.getElementById('bathrooms').value,
+                property_type: document.getElementById('property_type').value,
+                amenities: Array.from(document.querySelectorAll('input[name="amenities"]:checked')).map(el => el.value)
             };
             
-            // Update URL with filters for shareable links
-            const url = new URL(window.location);
-            Object.entries(filters).forEach(([key, value]) => {
-                if (Array.isArray(value)) {
-                    // Remove existing params
-                    url.searchParams.delete(key);
-                    // Add each value
-                    value.forEach(v => {
-                        if (v) url.searchParams.append(key, v);
-                    });
-                } else if (value) {
-                    url.searchParams.set(key, value);
-                } else {
-                    url.searchParams.delete(key);
-                }
-            });
-            
-            window.history.pushState({}, '', url);
-            
-            // Load listings with filters
+            // Load filtered listings
             loadListings(filters);
-        });
-        
-        // Add automatic form submission when select fields change
-        const autoSubmitFields = filterForm.querySelectorAll('select, input[type="checkbox"]');
-        autoSubmitFields.forEach(field => {
-            field.addEventListener('change', () => filterForm.dispatchEvent(new Event('submit')));
         });
     }
     
-    // Add custom styles for the map
+    // Handle window resize for responsive adjustments
+    window.addEventListener('resize', function() {
+        // Trigger map resize to fix rendering issues
+        map.invalidateSize();
+    });
+    
+    // Add custom styles for the map markers
     const mapStyleSheet = document.createElement('style');
     mapStyleSheet.textContent = `
         .custom-marker {
@@ -311,6 +368,6 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     document.head.appendChild(mapStyleSheet);
     
-    // Initial load of listings
+    // Load initial listings
     loadListings();
 }); 

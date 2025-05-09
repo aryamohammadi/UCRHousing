@@ -1,0 +1,3 @@
+title,description,address,price,bedrooms,bathrooms,square_feet,property_type,amenities,contact_email,contact_phone
+"2-Bed Apartment near UCR","Modern apartment with great amenities, walking distance to campus","1234 University Ave, Riverside, CA 92507",1400,2,2,850,Apartment,"Pool, Parking, Air Conditioning",landlord@example.com,951-555-1234
+"Budget 1-Bed Studio","Cozy studio perfect for students on a budget","500 Campus Dr, Riverside, CA 92507",950,1,1,550,Studio,"Furnished, Heating",contact@example.com,951-555-5678 
