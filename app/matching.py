@@ -4,15 +4,43 @@ Replaces OpenAI chat with a keyword-based matching algorithm
 """
 
 import re
+import os
+import logging
 from collections import Counter
 import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
 
-# Download NLTK data (uncomment first time)
-# nltk.download('punkt')
-# nltk.download('stopwords')
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Try to load NLTK resources, but provide fallbacks if unavailable
+try:
+    from nltk.corpus import stopwords
+    from nltk.tokenize import word_tokenize
+    nltk_available = True
+    logger.info("NLTK resources loaded successfully")
+except (LookupError, ImportError) as e:
+    nltk_available = False
+    logger.warning(f"NLTK resources not available: {str(e)}")
+
+# Basic stop words set for fallback
+BASIC_STOP_WORDS = {'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 
+                  'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 
+                  'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 
+                  'itself', 'they', 'them', 'their', 'theirs', 'themselves', 
+                  'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 
+                  'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 
+                  'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 
+                  'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 
+                  'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 
+                  'into', 'through', 'during', 'before', 'after', 'above', 'below', 
+                  'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 
+                  'under', 'again', 'further', 'then', 'once', 'here', 'there', 
+                  'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 
+                  'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 
+                  'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 
+                  's', 't', 'can', 'will', 'just', 'don', 'should', 'now'}
 
 class ListingMatcher:
     """Rule-based system for matching user queries to housing listings"""
@@ -20,31 +48,35 @@ class ListingMatcher:
     def __init__(self):
         """Initialize the matcher with NLP tools"""
         self.stemmer = PorterStemmer()
+        
+        # Try to get stopwords from NLTK, fall back to basic set if not available
         try:
-            self.stop_words = set(stopwords.words('english'))
-        except LookupError:
-            # Fall back to basic stop words if NLTK data isn't available
-            self.stop_words = {'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 
-                              'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 
-                              'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 
-                              'itself', 'they', 'them', 'their', 'theirs', 'themselves', 
-                              'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 
-                              'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 
-                              'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 
-                              'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 
-                              'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 
-                              'into', 'through', 'during', 'before', 'after', 'above', 'below', 
-                              'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 
-                              'under', 'again', 'further', 'then', 'once', 'here', 'there', 
-                              'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 
-                              'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 
-                              'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 
-                              's', 't', 'can', 'will', 'just', 'don', 'should', 'now'}
-    
+            if nltk_available:
+                self.stop_words = set(stopwords.words('english'))
+                logger.info("Using NLTK stopwords")
+            else:
+                self.stop_words = BASIC_STOP_WORDS
+                logger.info("Using basic stopwords (NLTK not available)")
+        except Exception as e:
+            logger.warning(f"Error loading stopwords: {str(e)}")
+            self.stop_words = BASIC_STOP_WORDS
+            
     def preprocess_text(self, text):
         """Preprocess text by lowercasing, tokenizing, removing stop words, and stemming"""
         text = text.lower()
-        tokens = word_tokenize(text) if hasattr(nltk, 'word_tokenize') else text.split()
+        
+        # Use NLTK tokenizer if available, otherwise fall back to simple split
+        try:
+            if nltk_available:
+                tokens = word_tokenize(text)
+            else:
+                # Simple tokenization as fallback
+                tokens = text.split()
+        except Exception as e:
+            logger.warning(f"Error in tokenization: {str(e)}")
+            tokens = text.split()
+            
+        # Filter tokens and apply stemming
         tokens = [token for token in tokens if token not in self.stop_words and token.isalpha()]
         stems = [self.stemmer.stem(token) for token in tokens]
         return stems

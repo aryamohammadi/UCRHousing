@@ -11,7 +11,7 @@ class Config:
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
     
     # Google Maps configuration
-    GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
+    GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY') or 'AIzaSyAw-8BS5lJ-lt-lKDllhoiEktF3cQgSGto'
     
     # Session configuration
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
