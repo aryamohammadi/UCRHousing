@@ -139,10 +139,6 @@ For production deployment:
 3. Configure a PostgreSQL database
 4. Set a secure SECRET_KEY
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Legal Notice
 
 © 2025 UCR HousingConnect. All Rights Reserved.
