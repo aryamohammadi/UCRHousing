@@ -4,8 +4,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+import logging
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,6 +18,20 @@ load_dotenv()
 # Initialize SQLAlchemy and Migrate instances
 db = SQLAlchemy()
 migrate = Migrate()
+
+# Initialize Sentry if DSN is provided
+sentry_dsn = os.environ.get('SENTRY_DSN')
+if sentry_dsn:
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=1.0,
+        environment=os.environ.get('FLASK_ENV', 'development'),
+        send_default_pii=False
+    )
+    logger.info("Sentry initialized for error tracking")
+else:
+    logger.info("Sentry DSN not found, error tracking disabled")
 
 def create_app(test_config=None):
     """
@@ -74,11 +93,13 @@ def create_app(test_config=None):
     from app.routes.listing import listing_bp
     from app.routes.chat import chat_bp
     from app.routes.admin import admin_bp
+    from app.routes.auth import auth_bp
     
     app.register_blueprint(home_bp)
     app.register_blueprint(listing_bp)
     app.register_blueprint(chat_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(auth_bp)
     
     # A simple route to confirm the app is working
     @app.route('/ping')
@@ -89,15 +110,36 @@ def create_app(test_config=None):
     with app.app_context():
         db.create_all()
     
-    # Download required NLTK data if not already available
+    # Configure NLTK to use local data directory instead of downloading
+    nltk_data_dir = os.path.expanduser('~/nltk_data')
+    nltk.data.path.insert(0, nltk_data_dir)
+    
+    # Check if NLTK data is available
     try:
+        from nltk.corpus import stopwords
+        from nltk.tokenize import word_tokenize
+        
         # Test if we can access NLTK data
         stopwords.words('english')
         word_tokenize("This is a test sentence.")
-    except LookupError:
-        # If not, download the required data
-        print("Downloading required NLTK data...")
-        nltk.download('punkt')
-        nltk.download('stopwords')
+        logger.info("NLTK data verified and ready")
+    except LookupError as e:
+        # If data is not available, inform the user to run the download script
+        logger.warning(f"NLTK data not found: {str(e)}")
+        logger.warning("Please run 'python download_nltk_data.py' to download required NLTK data")
+        
+        # Try using the download script directly as a last resort
+        try:
+            import sys
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            from download_nltk_data import download_nltk_data
+            
+            logger.info("Attempting to download NLTK data...")
+            if download_nltk_data():
+                logger.info("NLTK data downloaded successfully")
+            else:
+                logger.error("Failed to download NLTK data")
+        except Exception as e:
+            logger.error(f"Error trying to download NLTK data: {str(e)}")
     
     return app

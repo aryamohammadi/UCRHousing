@@ -142,3 +142,9 @@ For production deployment:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Legal Notice
+
+© 2025 UCR HousingConnect. All Rights Reserved.
+
+This software is proprietary and confidential. Unauthorized copying, distribution, modification, public display, or public performance of this software is strictly prohibited.

@@ -1,5 +1,6 @@
 from app import db
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 import json
 
 # Many-to-many relationship table for listings and amenities
@@ -7,6 +8,46 @@ listing_amenities = db.Table('listing_amenities',
     db.Column('listing_id', db.Integer, db.ForeignKey('listing.id'), primary_key=True),
     db.Column('amenity_id', db.Integer, db.ForeignKey('amenity.id'), primary_key=True)
 )
+
+class User(db.Model):
+    """User model for authentication and account management"""
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(20), default='user')  # 'user', 'property_manager', 'admin'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
+    
+    # One-to-many relationship with listings (for property managers)
+    listings = db.relationship('Listing', backref='owner', lazy='dynamic')
+    
+    def set_password(self, password):
+        """Set hashed password"""
+        self.password_hash = generate_password_hash(password)
+        
+    def check_password(self, password):
+        """Check if password matches"""
+        return check_password_hash(self.password_hash, password)
+        
+    def is_admin(self):
+        """Check if user has admin role"""
+        return self.role == 'admin'
+        
+    def is_property_manager(self):
+        """Check if user has property manager role"""
+        return self.role == 'property_manager'
+    
+    def to_dict(self):
+        """Convert user to dictionary (excluding sensitive data)"""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'role': self.role,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_login': self.last_login.isoformat() if self.last_login else None
+        }
 
 class Listing(db.Model):
     """Housing listing model representing available properties"""
@@ -36,6 +77,9 @@ class Listing(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Owner reference (for property managers)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
     # Relationships
     amenities = db.relationship('Amenity', secondary=listing_amenities, 
                                 lazy='subquery', backref=db.backref('listings', lazy=True))
@@ -62,7 +106,7 @@ class Listing(db.Model):
             self.unit_options = None
     
     def to_dict(self):
-        """Convert listing to dictionary for JSON responses"""
+        """Convert listing to dictionary for API responses"""
         data = {
             'id': self.id,
             'title': self.title,
@@ -80,18 +124,19 @@ class Listing(db.Model):
             'contact_email': self.contact_email,
             'contact_phone': self.contact_phone,
             'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'updated_at': self.updated_at.isoformat(),
+            'is_multi_unit': self.is_multi_unit,
+            'unit_options': self.unit_options_list,
+            'owner_id': self.user_id
         }
         
         # Add multi-unit data if applicable
         if self.is_multi_unit:
             data.update({
-                'is_multi_unit': True,
                 'min_bedrooms': self.min_bedrooms,
                 'max_bedrooms': self.max_bedrooms,
                 'min_bathrooms': self.min_bathrooms,
-                'max_bathrooms': self.max_bathrooms,
-                'unit_options': self.unit_options_list
+                'max_bathrooms': self.max_bathrooms
             })
         
         return data

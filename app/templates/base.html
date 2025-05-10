@@ -60,6 +60,39 @@
                     <a href="{{ url_for('chat.chat_interface') }}" class="text-white hover:text-ucr-gold-300 py-2 transition-colors">
                         <i class="fas fa-comments mr-1"></i> Housing Assistant
                     </a>
+                    
+                    {% if current_user %}
+                    <div class="relative" x-data="{ userMenuOpen: false }">
+                        <button @click="userMenuOpen = !userMenuOpen" class="flex items-center text-white hover:text-ucr-gold-300 py-2 transition-colors">
+                            <i class="fas fa-user-circle mr-1"></i> {{ current_user.username }}
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        <div x-show="userMenuOpen" @click.away="userMenuOpen = false" class="absolute right-0 mt-2 py-2 w-48 bg-white rounded-md shadow-xl z-20 dark:bg-gray-800">
+                            {% if current_user.is_admin() %}
+                            <a href="{{ url_for('admin.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                <i class="fas fa-tachometer-alt mr-2"></i> Admin Dashboard
+                            </a>
+                            {% endif %}
+                            
+                            {% if current_user.is_property_manager() %}
+                            <a href="{{ url_for('listing.my_listings') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                <i class="fas fa-list mr-2"></i> My Listings
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Log Out
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="text-white hover:text-ucr-gold-300 py-2 transition-colors">
+                        <i class="fas fa-sign-in-alt mr-1"></i> Log In
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="bg-ucr-gold-500 text-ucr-blue-900 hover:bg-ucr-gold-400 py-2 px-4 rounded-md transition-colors">
+                        <i class="fas fa-user-plus mr-1"></i> Register
+                    </a>
+                    {% endif %}
                 </nav>
                 
                 <!-- Dark Mode Toggle -->
@@ -112,6 +145,38 @@
                 <a href="{{ url_for('chat.chat_interface') }}" class="flex items-center p-3 rounded-md hover:bg-ucr-blue-50 dark:hover:bg-ucr-blue-900 text-ucr-blue-700 dark:text-ucr-blue-200">
                     <i class="fas fa-comments mr-2"></i> Housing Assistant
                 </a>
+                
+                {% if current_user %}
+                <div class="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
+                    <p class="px-3 text-sm text-gray-500 dark:text-gray-400">Logged in as <span class="font-semibold">{{ current_user.username }}</span></p>
+                    
+                    {% if current_user.is_admin() %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="flex items-center p-3 rounded-md hover:bg-ucr-blue-50 dark:hover:bg-ucr-blue-900 text-ucr-blue-700 dark:text-ucr-blue-200">
+                        <i class="fas fa-tachometer-alt mr-2"></i> Admin Dashboard
+                    </a>
+                    {% endif %}
+                    
+                    {% if current_user.is_property_manager() %}
+                    <a href="{{ url_for('listing.my_listings') }}" class="flex items-center p-3 rounded-md hover:bg-ucr-blue-50 dark:hover:bg-ucr-blue-900 text-ucr-blue-700 dark:text-ucr-blue-200">
+                        <i class="fas fa-list mr-2"></i> My Listings
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('auth.logout') }}" class="flex items-center p-3 rounded-md hover:bg-ucr-blue-50 dark:hover:bg-ucr-blue-900 text-ucr-blue-700 dark:text-ucr-blue-200">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Log Out
+                    </a>
+                </div>
+                {% else %}
+                <div class="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
+                    <a href="{{ url_for('auth.login') }}" class="flex items-center p-3 rounded-md hover:bg-ucr-blue-50 dark:hover:bg-ucr-blue-900 text-ucr-blue-700 dark:text-ucr-blue-200">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="flex items-center p-3 rounded-md bg-ucr-gold-500 text-ucr-blue-900 hover:bg-ucr-gold-400 mt-2">
+                        <i class="fas fa-user-plus mr-2"></i> Register
+                    </a>
+                </div>
+                {% endif %}
+                
                 <div class="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
                     <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" class="flex items-center w-full p-3 rounded-md hover:bg-ucr-blue-50 dark:hover:bg-ucr-blue-900 text-ucr-blue-700 dark:text-ucr-blue-200">
                         <span x-text="darkMode ? 'Light Mode' : 'Dark Mode'" class="flex-1 text-left"></span>
