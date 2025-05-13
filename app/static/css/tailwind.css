@@ -86,15 +86,6 @@
     @apply rounded border-gray-300 text-ucr-blue-600 shadow-sm focus:border-ucr-blue-300 
            focus:ring focus:ring-offset-0 focus:ring-ucr-blue-200 focus:ring-opacity-50;
   }
-  
-  /* Chat Components */
-  .chat-bubble-user {
-    @apply bg-ucr-blue-50 rounded-lg p-3 max-w-[80%] shadow-sm border border-ucr-blue-100;
-  }
-  
-  .chat-bubble-assistant {
-    @apply bg-ucr-blue-100 rounded-lg p-3 max-w-[80%] shadow-sm border border-ucr-blue-200;
-  }
 }
 
 @layer utilities {
@@ -132,4 +123,10 @@
 
 .animate-pulse-glow {
   animation: pulseGlow 2s infinite;
+}
+
+/* Campus map toggle */
+input:checked ~ .dot {
+    transform: translateX(100%);
+    background-color: #1d4ed8;
 } 

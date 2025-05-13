@@ -16,83 +16,165 @@ let directionsService;
 let directionsRenderer;
 let markers = [];
 
+// Set a flag to track initialization
+window.googleMapsLoaded = false;
+
+// Create a global utility object for map operations
+window.googleMapsUtils = {
+    initMap: initMap,
+    addPropertyMarker: addPropertyMarker,
+    clearMarkers: clearMarkers,
+    fitMapToMarkers: fitMapToMarkers,
+    calculateDistanceToUCR: calculateDistanceToUCR
+};
+
 function initMap() {
-    // Initialize the map centered on UCR
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: UCR_CAMPUS,
-        zoom: 13,
-        styles: [
-            {
-                featureType: "poi",
-                elementType: "labels",
-                stylers: [{ visibility: "off" }]
+    console.log("Initializing Google Maps");
+    
+    // Find the map container - could be different IDs depending on the page
+    const mapElement = document.getElementById('map') || 
+                      document.getElementById('detail-map') || 
+                      document.getElementById('property-map');
+    
+    if (!mapElement) {
+        console.error("Map container not found, cannot initialize Google Maps");
+        return;
+    }
+    
+    // Ensure the map element has proper dimensions
+    if (mapElement.offsetHeight < 100) {
+        console.log("Map element has insufficient height, setting explicit height");
+        mapElement.style.height = '400px';
+    }
+    
+    try {
+        // Initialize the map centered on UCR
+        map = new google.maps.Map(mapElement, {
+            center: UCR_CAMPUS,
+            zoom: 13,
+            styles: [
+                {
+                    featureType: "poi",
+                    elementType: "labels",
+                    stylers: [{ visibility: "off" }]
+                }
+            ]
+        });
+        
+        // Initialize directions service and renderer
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+            map: map,
+            suppressMarkers: true
+        });
+        
+        // Add UCR campus marker
+        new google.maps.Marker({
+            position: UCR_CAMPUS,
+            map: map,
+            title: 'UCR Campus',
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: '#003DA5',
+                fillOpacity: 1,
+                strokeColor: '#FFD100',
+                strokeWeight: 2
             }
-        ]
-    });
-
-    // Initialize directions service and renderer
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({
-        map: map,
-        suppressMarkers: true
-    });
-
-    // Add UCR campus marker
-    new google.maps.Marker({
-        position: UCR_CAMPUS,
-        map: map,
-        title: 'UCR Campus',
-        icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: '#003DA5',
-            fillOpacity: 1,
-            strokeColor: '#FFD100',
-            strokeWeight: 2
+        });
+        
+        // Check if this is a detail page by looking for data attributes
+        const mapLat = parseFloat(mapElement.getAttribute('data-lat'));
+        const mapLng = parseFloat(mapElement.getAttribute('data-lng'));
+        const mapTitle = mapElement.getAttribute('data-title');
+        
+        if (!isNaN(mapLat) && !isNaN(mapLng)) {
+            // This is likely a detail page, so center on the property
+            map.setCenter({ lat: mapLat, lng: mapLng });
+            map.setZoom(14);
+            
+            // Add property marker
+            new google.maps.Marker({
+                position: { lat: mapLat, lng: mapLng },
+                map: map,
+                title: mapTitle || 'Property'
+            });
+            
+            // Calculate route to UCR
+            calculateRouteToUCR(mapLat, mapLng);
         }
-    });
+        
+        // Set flag to indicate successful initialization
+        window.googleMapsLoaded = true;
+        
+        // Dispatch event to indicate map is ready
+        const mapReadyEvent = new Event('map_ready');
+        document.dispatchEvent(mapReadyEvent);
+        
+        console.log("Google Maps initialized successfully");
+    } catch (error) {
+        console.error("Error initializing Google Maps:", error);
+        // Let the fallback handle it
+        if (typeof handleGoogleMapsError === 'function') {
+            handleGoogleMapsError();
+        }
+    }
+}
 
-    // Add map controls
-    const mapControls = document.createElement('div');
-    mapControls.className = 'map-controls';
-    mapControls.innerHTML = `
-        <div class="view-tabs">
-            <button id="map-view" class="view-tab active">
-                <i class="fas fa-map mr-1"></i> Map
-            </button>
-            <button id="satellite-view" class="view-tab">
-                <i class="fas fa-satellite-dish mr-1"></i> Satellite
-            </button>
-        </div>
-    `;
-    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(mapControls);
-
-    // Add zoom to UCR button
-    const zoomToUCRButton = document.createElement('button');
-    zoomToUCRButton.className = 'zoom-to-ucr';
-    zoomToUCRButton.innerHTML = '<i class="fas fa-university mr-1"></i> UCR Campus';
-    zoomToUCRButton.onclick = () => {
-        map.setCenter(UCR_CAMPUS);
-        map.setZoom(13);
+// Calculate route from property to UCR
+function calculateRouteToUCR(propertyLat, propertyLng) {
+    if (!directionsService) return;
+    
+    const request = {
+        origin: { lat: propertyLat, lng: propertyLng },
+        destination: UCR_CAMPUS,
+        travelMode: google.maps.TravelMode.DRIVING
     };
-    map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(zoomToUCRButton);
-
-    // Set up view toggle handlers
-    document.getElementById('map-view').onclick = () => {
-        map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
-        document.getElementById('map-view').classList.add('active');
-        document.getElementById('satellite-view').classList.remove('active');
-    };
-
-    document.getElementById('satellite-view').onclick = () => {
-        map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
-        document.getElementById('satellite-view').classList.add('active');
-        document.getElementById('map-view').classList.remove('active');
-    };
+    
+    try {
+        directionsService.route(request, function(result, status) {
+            if (status === google.maps.DirectionsStatus.OK) {
+                directionsRenderer.setDirections(result);
+                
+                // Get distance and time
+                const route = result.routes[0].legs[0];
+                const drivingDistanceElement = document.getElementById('driving-distance');
+                if (drivingDistanceElement) {
+                    drivingDistanceElement.textContent = route.distance.text;
+                }
+                
+                const drivingTimeElement = document.getElementById('driving-time');
+                if (drivingTimeElement) {
+                    drivingTimeElement.textContent = route.duration.text;
+                }
+            } else {
+                console.error('Directions request failed due to ' + status);
+                
+                const drivingDistanceElement = document.getElementById('driving-distance');
+                if (drivingDistanceElement) {
+                    drivingDistanceElement.textContent = 'Unable to calculate';
+                }
+                
+                const drivingTimeElement = document.getElementById('driving-time');
+                if (drivingTimeElement) {
+                    drivingTimeElement.textContent = 'Unable to calculate';
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error calculating directions:', error);
+    }
 }
 
 // Calculate distance and duration from UCR to a property
 async function calculateDistanceToUCR(propertyLat, propertyLng) {
+    if (!directionsService) {
+        return {
+            drivingDistance: "Maps not initialized",
+            drivingDuration: "Maps not initialized"
+        };
+    }
+    
     const request = {
         origin: { lat: propertyLat, lng: propertyLng },
         destination: UCR_CAMPUS,
@@ -100,12 +182,20 @@ async function calculateDistanceToUCR(propertyLat, propertyLng) {
     };
 
     try {
-        const result = await directionsService.route(request);
-        const route = result.routes[0].legs[0];
-        return {
-            drivingDistance: route.distance.text,
-            drivingDuration: route.duration.text
-        };
+        return new Promise((resolve, reject) => {
+            directionsService.route(request, function(result, status) {
+                if (status === google.maps.DirectionsStatus.OK) {
+                    const route = result.routes[0].legs[0];
+                    resolve({
+                        drivingDistance: route.distance.text,
+                        drivingDuration: route.duration.text
+                    });
+                } else {
+                    console.error('Error calculating distance:', status);
+                    reject(new Error('Unable to calculate distance'));
+                }
+            });
+        });
     } catch (error) {
         console.error('Error calculating distance:', error);
         return null;
@@ -114,14 +204,15 @@ async function calculateDistanceToUCR(propertyLat, propertyLng) {
 
 // Add a property marker to the map
 function addPropertyMarker(listing) {
+    if (!map || !listing || !listing.latitude || !listing.longitude) return null;
+    
     const position = { lat: listing.latitude, lng: listing.longitude };
     
     // Create marker
     const marker = new google.maps.Marker({
         position: position,
         map: map,
-        title: listing.title,
-        animation: google.maps.Animation.DROP
+        title: listing.title
     });
 
     // Create info window content
@@ -152,6 +243,12 @@ function addPropertyMarker(listing) {
                         distanceElement.textContent = `${distance.drivingDistance} (${distance.drivingDuration})`;
                     }
                 }
+            })
+            .catch(err => {
+                const distanceElement = infoWindow.getContent().querySelector('.driving-distance');
+                if (distanceElement) {
+                    distanceElement.textContent = 'Unable to calculate';
+                }
             });
     });
 
@@ -167,18 +264,9 @@ function clearMarkers() {
 
 // Fit map bounds to show all markers
 function fitMapToMarkers() {
-    if (markers.length === 0) return;
+    if (!map || markers.length === 0) return;
 
     const bounds = new google.maps.LatLngBounds();
     markers.forEach(marker => bounds.extend(marker.getPosition()));
     map.fitBounds(bounds);
-}
-
-// Export functions for use in other modules
-window.googleMapsUtils = {
-    initMap,
-    addPropertyMarker,
-    clearMarkers,
-    fitMapToMarkers,
-    calculateDistanceToUCR
-}; 
+} 

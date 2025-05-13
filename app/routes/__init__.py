@@ -2,4 +2,3 @@
 # Import blueprints here to make them accessible
 from app.routes.home import home_bp
 from app.routes.listing import listing_bp
-from app.routes.chat import chat_bp

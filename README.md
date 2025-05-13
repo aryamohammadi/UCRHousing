@@ -29,6 +29,32 @@ The platform uses a sophisticated rule-based matching system to help students fi
 - **Explanation**: For each recommendation, the system explains why it's a good match for your needs
 - **No API Keys Required**: The matching system works entirely locally without relying on external AI services
 
+## AI Housing Assistant Features
+
+The platform integrates AI technology to provide a personalized housing search experience:
+
+- **Natural Language Understanding**: Ask for housing in plain English - "I need a quiet 2-bedroom near campus with parking under $1500"
+- **Intelligent Recommendations**: AI analyzes your needs and matches them to available properties
+- **Context-Aware Follow-up**: System suggests relevant follow-up questions to refine your search
+- **Simple User Interface**: Chat-like interface that anyone can use without technical knowledge
+- **Real-Time Metrics**: Dashboard displaying the impact of the AI assistant on helping students
+
+### Impact Metrics
+
+The AI Housing Assistant tracks important impact metrics:
+
+- **Total Searches**: Number of housing searches processed by the AI
+- **Success Rate**: Percentage of searches that found relevant matches
+- **Average Results**: Average number of personalized recommendations per search
+- **Matched Students**: Number of students who found potential housing options
+
+### Technology Implementation
+
+- **OpenAI Integration**: Uses the GPT-3.5 model via the OpenAI Python SDK
+- **Fallback Mechanism**: Provides rule-based recommendations when API is unavailable
+- **Analytics Tracking**: Records and analyzes search patterns to measure impact
+- **Response Formatting**: Structures AI responses in a clear, actionable format
+
 ## Technology Stack
 
 - Backend: Python 3.x with Flask
