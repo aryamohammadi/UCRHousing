@@ -1,5 +1,5 @@
 // API base URL - switches between dev and production automatically 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-api-production-cc33.up.railway.app/api'
 
 // API service class - basically handles all our HTTP requests so we don't repeat code
 class ApiService {
