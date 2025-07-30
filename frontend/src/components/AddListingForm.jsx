@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import ApiService from '../services/api'
 
 function AddListingForm({ onCancel, onSuccess }) {
-  const { getAuthHeader } = useAuth()
+  const { user } = useAuth()
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -131,22 +132,14 @@ function AddListingForm({ onCancel, onSuccess }) {
         available_date: formData.available_date || undefined
       }
 
-      // Make API call
-      const response = await fetch('http://localhost:3001/api/listings', {
+      // Make API call using ApiService instead of hardcoded localhost URL
+      const result = await ApiService.request('/listings', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeader()
+          Authorization: `Bearer ${user.token}`
         },
         body: JSON.stringify(submitData)
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create listing')
-      }
-
-      const result = await response.json()
       
       // Success! Call the success callback
       onSuccess(result.listing)

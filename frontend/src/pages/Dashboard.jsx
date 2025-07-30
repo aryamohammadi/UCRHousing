@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import ApiService from '../services/api'
 import AddListingForm from '../components/AddListingForm'
 import EditListingForm from '../components/EditListingForm'
+import ApiService from '../services/api'
 
 function Dashboard() {
   const { user, getAuthHeader } = useAuth()
@@ -25,17 +25,13 @@ function Dashboard() {
       setLoading(true)
       setError('')
 
-      const response = await fetch('http://localhost:3001/api/listings/my', {
+      // Use ApiService instead of hardcoded localhost URL
+      const data = await ApiService.request('/listings/my', {
         headers: {
-          ...getAuthHeader()
+          Authorization: `Bearer ${user.token}`
         }
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch listings')
-      }
-
-      const data = await response.json()
+      
       const userListings = data.listings || []
       
       setListings(userListings)
@@ -70,18 +66,14 @@ function Dashboard() {
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
       
-      const response = await fetch(`http://localhost:3001/api/listings/${listingId}`, {
+      // Use ApiService instead of hardcoded localhost URL
+      await ApiService.request(`/listings/${listingId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeader()
+          Authorization: `Bearer ${user.token}`
         },
         body: JSON.stringify({ status: newStatus })
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to update listing')
-      }
 
       // Refresh listings after update
       fetchMyListings()
@@ -98,16 +90,13 @@ function Dashboard() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/api/listings/${listingId}`, {
+      // Use ApiService instead of hardcoded localhost URL
+      await ApiService.request(`/listings/${listingId}`, {
         method: 'DELETE',
         headers: {
-          ...getAuthHeader()
+          Authorization: `Bearer ${user.token}`
         }
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete listing')
-      }
 
       // Refresh listings after deletion
       fetchMyListings()
