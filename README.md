@@ -1,12 +1,21 @@
-# UCR Housing Platform
+# DormDuos
 
-A web application for UC Riverside students to find and post housing listings near campus. Built as a community platform where students can connect directly with landlords and property owners.
+A housing and roommate platform for UC Riverside students. Find housing, connect with roommates, and discover your perfect living situation near campus.
 
 ## What This Is
 
-This is basically a housing board for UCR students. Think of it like Craigslist but specifically for student housing around campus. Students can browse available places to rent, and landlords can post their properties.
+DormDuos is your go-to platform for UCR student housing and roommate connections. We make it easy to find available rentals and connect with potential roommates who share your lifestyle and preferences.
 
-**Important**: This platform just connects people - we don't verify landlords or guarantee anything. Always do your own research and meet in person before making any commitments.
+**Current Features**: Browse and post housing listings with detailed filters
+**Coming Soon**: Built-in roommate matching and communication tools
+
+**Important**: This platform connects people in the community - we don't verify landlords or guarantee housing quality. Always do your research and meet in person before making commitments.
+
+## Roommate Search Available Now!
+
+🎯 **Looking for roommates right now?** Join HighlanderHousing's Discord community at https://discord.gg/gqCQDXz4rg
+
+Our full roommate matching feature will be integrated into the website soon!
 
 ## Tech Stack
 
@@ -17,12 +26,20 @@ This is basically a housing board for UCR students. Think of it like Craigslist 
 
 ## Features
 
+### Current
+
 - Browse housing listings with filters (price, bedrooms, location)
 - User authentication for landlords to post listings
 - Responsive design that works on mobile and desktop
 - Search and filter functionality
 - Direct contact between students and landlords
 - Secure password hashing and input sanitization
+
+### Coming Soon
+
+- **Roommate Matching**: Find compatible roommates based on preferences
+- **In-app Messaging**: Chat directly with potential roommates
+- **Profile Creation**: Detailed roommate profiles with lifestyle preferences
 
 ## Getting Started Locally
 
@@ -32,30 +49,17 @@ This is basically a housing board for UCR students. Think of it like Craigslist 
 - MongoDB (either local installation or MongoDB Atlas)
 - Git
 
-### Installation
+### Quick Start
 
-1. Clone the repository
+1. **Clone and install dependencies**
 
 ```bash
 git clone https://github.com/your-username/ucrhousing.git
 cd ucrhousing
+npm run install:all
 ```
 
-2. Install backend dependencies
-
-```bash
-cd backend
-npm install
-```
-
-3. Install frontend dependencies
-
-```bash
-cd ../frontend
-npm install
-```
-
-4. Set up environment variables
+2. **Set up environment variables**
    Create a `.env` file in the backend directory:
 
 ```
@@ -65,45 +69,40 @@ JWT_SECRET=your-secret-key-here
 FRONTEND_URL=http://localhost:5173
 ```
 
-5. Start the backend server
+3. **Start both frontend and backend**
 
 ```bash
-cd backend
-npm run dev
+# Terminal 1: Start backend
+cd backend && npm run dev
+
+# Terminal 2: Start frontend
+cd frontend && npm run dev
 ```
 
-6. Start the frontend (in a new terminal)
-
-```bash
-cd frontend
-npm run dev
-```
-
-The app should now be running at `http://localhost:5173`
+The app will be running at `http://localhost:5173`
 
 ## Live Demo
 
-The application is deployed and running at:
+🚀 **Visit DormDuos**: https://dormduos.com
 
-- **Website**: https://ucr-housing.vercel.app
-- **API**: https://backend-api-production-cc33.up.railway.app
+- **API Backend**: Hosted on Railway
+- **Database**: MongoDB Atlas
 
 ## Project Structure
 
 ```
 ucrhousing/
 ├── backend/                 # Express.js API server
-│   ├── config/             # Database and CORS configuration
-│   ├── middleware/         # Authentication and validation
-│   ├── models/            # MongoDB schemas
-│   ├── routes/            # API endpoints
+│   ├── middleware/         # Security, auth, validation
+│   ├── models/            # MongoDB schemas (User, Listing)
+│   ├── routes/            # API endpoints (auth, listings)
 │   └── index.js           # Main server file
 ├── frontend/               # React application
 │   ├── public/            # Static assets
 │   └── src/
 │       ├── components/    # Reusable React components
 │       ├── contexts/      # React Context for auth
-│       ├── pages/         # Main page components
+│       ├── pages/         # Main page components (Home, Listings, Dashboard)
 │       └── services/      # API communication
 └── README.md
 ```
@@ -123,62 +122,106 @@ ucrhousing/
 - `PUT /api/listings/:id` - Update listing (auth required)
 - `DELETE /api/listings/:id` - Delete listing (auth required)
 
-## Security
+### Health
 
-- Passwords are hashed using bcrypt
-- JWT tokens for authentication
-- Input sanitization to prevent MongoDB injection
-- CORS configured for production
-- Rate limiting on sensitive endpoints
+- `GET /api/health` - Health check endpoint
+
+## Security & Performance
+
+- **Security**: Password hashing (bcrypt), JWT authentication, input sanitization, NoSQL injection prevention, CORS configuration, rate limiting
+- **Performance**: Request size limiting, efficient MongoDB queries, responsive caching
+- **Monitoring**: Health checks, error logging, request monitoring
+
+## Community Partnership
+
+DormDuos is developed **in partnership with HighlanderHousing**, UCR's established housing community.
+
+- **Discord Community**: https://discord.gg/gqCQDXz4rg
+- **Current Roommate Search**: Available now through Discord
+- **Future Integration**: Roommate features coming to DormDuos platform
+
+## Testing
+
+```bash
+# Run all tests
+npm test
+
+# Backend tests
+cd backend && npm test
+
+# Frontend tests
+cd frontend && npm test
+```
 
 ## Deployment
 
-This app is set up for easy deployment:
+### Production Setup
 
-### Frontend (Vercel)
+- **Frontend**: Auto-deployed to Vercel via GitHub integration
+- **Backend**: Auto-deployed to Railway via GitHub integration
+- **Database**: MongoDB Atlas (cloud hosting)
+- **Domain**: dormduos.com via Vercel DNS
 
-The frontend automatically deploys when you push to the main branch if connected to Vercel.
+### Environment Variables (Production)
 
-### Backend (Railway)
+Required for Railway backend deployment:
 
-The backend is deployed on Railway with automatic deploys from GitHub.
-
-### Database
-
-MongoDB is hosted on Railway's free tier.
+```
+PORT=3001
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=secure-random-string
+FRONTEND_URL=https://dormduos.com
+NODE_ENV=production
+```
 
 ## Contributing
 
-This is a student project, but if you want to contribute:
+Built by UCR students, for the UCR community! Contributions welcome:
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Commit your changes (`git commit -m 'Add some feature'`)
-4. Push to the branch (`git push origin feature/new-feature`)
+2. Create a feature branch (`git checkout -b feature/roommate-matching`)
+3. Commit your changes (`git commit -m 'Add roommate matching algorithm'`)
+4. Push to the branch (`git push origin feature/roommate-matching`)
 5. Open a Pull Request
 
-## Known Issues
+## Roadmap
 
-- Search functionality could be improved with fuzzy matching
-- No image upload for listings yet
-- Mobile responsive design needs some tweaks
-- Error handling could be more user-friendly
+### Phase 1: Housing Platform ✅
 
-## Future Improvements
+- [x] Housing listings and search
+- [x] User authentication
+- [x] Responsive design
+- [x] Production deployment
 
-- Add image upload for listings
-- Implement user favorites/bookmarks
-- Add email notifications for new listings
-- Better search with location-based filtering
-- User ratings and reviews system
+### Phase 2: Roommate Integration 🚧
+
+- [ ] Roommate profile creation
+- [ ] Compatibility matching algorithm
+- [ ] In-app messaging system
+- [ ] Discord integration migration
+
+### Phase 3: Enhanced Features 📋
+
+- [ ] Image upload for listings
+- [ ] User ratings and reviews
+- [ ] Email notifications
+- [ ] Advanced search filters
+- [ ] Favorites/bookmarks system
+
+## Support & Community
+
+- **Website**: https://dormduos.com
+- **Discord**: https://discord.gg/gqCQDXz4rg (HighlanderHousing community)
+- **Issues**: Open a GitHub issue for bugs or feature requests
 
 ## Disclaimer
 
-This platform is for educational purposes and facilitates connections between students and landlords. We do not verify landlords, guarantee housing quality, or take responsibility for any agreements made through this platform. Always exercise caution and verify all information independently.
+DormDuos facilitates connections between UCR students for housing and roommate purposes. We do not verify users, guarantee housing quality, or take responsibility for agreements made through this platform. Always exercise caution and verify information independently.
 
-## Contact
+## License
 
-If you find bugs or have suggestions, feel free to open an issue on GitHub.
+Built for the UCR student community. Educational and community use encouraged.
 
-Built by a UCR student for the UCR community.
-# Force deployment at Wed Jul 30 18:09:20 PDT 2025
+---
+
+**DormDuos** - Find Housing & Connect with Roommates at UC Riverside 🏠✨
