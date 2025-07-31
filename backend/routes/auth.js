@@ -31,7 +31,7 @@ router.post('/register', async (req, res) => {
     if (!email || !password) {
       console.log('❌ Missing required fields');
       return res.status(400).json({
-        error: 'Email and password are required'
+        error: 'Email and password are required fields'
       });
     }
     
@@ -43,7 +43,7 @@ router.post('/register', async (req, res) => {
     } catch (validationError) {
       console.log('❌ Input type validation failed:', validationError.message);
       return res.status(400).json({
-        error: validationError.message
+        error: `Input type validation failed: ${validationError.message}`
       });
     }
     
@@ -80,6 +80,7 @@ router.post('/register', async (req, res) => {
     console.log('✅ JWT token generated');
     
     res.status(201).json({
+      success: true,
       message: 'Account created successfully',
       token,
       landlord
@@ -96,7 +97,7 @@ router.post('/register', async (req, res) => {
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({ error: errors.join(', ') });
+      return res.status(400).json({ error: `validation failed: ${errors.join(', ')}` });
     }
     
     // Handle duplicate key error (email already exists)
@@ -119,7 +120,7 @@ router.post('/login', async (req, res) => {
     // Validate required fields
     if (!email || !password) {
       return res.status(400).json({
-        error: 'Email and password are required'
+        error: 'Email and password are required fields'
       });
     }
     
@@ -130,15 +131,15 @@ router.post('/login', async (req, res) => {
       validatedPassword = validateStringInput(password, 'Password');
     } catch (validationError) {
       return res.status(400).json({
-        error: 'Invalid input format'
+        error: `Input type validation failed: ${validationError.message}`
       });
     }
     
     // Find landlord by email
     const landlord = await Landlord.findOne({ email: validatedEmail });
     if (!landlord) {
-      return res.status(401).json({
-        error: 'Invalid email or password'
+      return res.status(400).json({
+        error: 'Invalid credentials'
       });
     }
     
@@ -152,8 +153,8 @@ router.post('/login', async (req, res) => {
     // Compare password
     const isPasswordValid = await landlord.comparePassword(validatedPassword);
     if (!isPasswordValid) {
-      return res.status(401).json({
-        error: 'Invalid email or password'
+      return res.status(400).json({
+        error: 'Invalid credentials'
       });
     }
     
@@ -161,6 +162,7 @@ router.post('/login', async (req, res) => {
     const token = generateToken(landlord._id);
     
     res.json({
+      success: true,
       message: 'Login successful',
       token,
       landlord

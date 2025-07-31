@@ -31,7 +31,8 @@ router.get('/', async (req, res) => {
     const safeParseNumber = (value, min = 0, max = 999999) => {
       if (!value || typeof value === 'object' || Array.isArray(value)) return null;
       const parsed = parseFloat(String(value).trim());
-      if (isNaN(parsed) || parsed < min || parsed > max) return null;
+      if (isNaN(parsed) || parsed < min) return null;
+      if (parsed > max) return 'exceeded'; // Special value for exceeded max
       return parsed;
     };
 
@@ -50,20 +51,40 @@ router.get('/', async (req, res) => {
     if (minPrice || maxPrice) {
       const priceFilter = {};
       let hasPriceFilter = false;
+      let minPriceNum = null;
+      let maxPriceNum = null;
       
       if (minPrice) {
-        const minPriceNum = safeParseNumber(minPrice, 0, 50000);
+        minPriceNum = safeParseNumber(minPrice, 0, 50000);
+        if (minPriceNum === 'exceeded') {
+          // Extremely high minimum price - return no results
+          return res.json({
+            listings: [],
+            pagination: { page: parseInt(page), limit: parseInt(limit), total: 0, pages: 0 }
+          });
+        }
         if (minPriceNum !== null) {
           priceFilter.$gte = minPriceNum;
           hasPriceFilter = true;
         }
       }
       if (maxPrice) {
-        const maxPriceNum = safeParseNumber(maxPrice, 0, 50000);
-        if (maxPriceNum !== null) {
+        maxPriceNum = safeParseNumber(maxPrice, 0, 50000);
+        if (maxPriceNum !== null && maxPriceNum !== 'exceeded') {
           priceFilter.$lte = maxPriceNum;
           hasPriceFilter = true;
         }
+      }
+      
+      // Check for invalid range (min > max) - return no results
+      if (minPriceNum !== null && minPriceNum !== 'exceeded' && 
+          maxPriceNum !== null && maxPriceNum !== 'exceeded' && 
+          minPriceNum > maxPriceNum) {
+        // Invalid price range - return empty results
+        return res.json({
+          listings: [],
+          pagination: { page: parseInt(page), limit: parseInt(limit), total: 0, pages: 0 }
+        });
       }
       
       // Only add price filter if we have valid constraints
@@ -212,7 +233,7 @@ router.post('/', authenticateToken, async (req, res) => {
     // Validate required fields
     if (!title || !description || !price || bedrooms === undefined || bathrooms === undefined || !address) {
       return res.status(400).json({
-        error: 'Missing required fields: title, description, price, bedrooms, bathrooms, address'
+        error: 'validation failed: Missing required fields: title, description, price, bedrooms, bathrooms, address'
       });
     }
 
@@ -246,10 +267,8 @@ router.post('/', authenticateToken, async (req, res) => {
 
     await listing.save();
 
-    // Populate landlord info before sending response
-    await listing.populate('landlord', 'name email phone');
-
     res.status(201).json({
+      success: true,
       message: 'Listing created successfully',
       listing
     });
@@ -260,7 +279,7 @@ router.post('/', authenticateToken, async (req, res) => {
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({ error: errors.join(', ') });
+      return res.status(400).json({ error: `validation failed: ${errors.join(', ')}` });
     }
 
     res.status(500).json({ error: 'Server error while creating listing' });
@@ -284,7 +303,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     if (listing.landlord.toString() !== req.landlord._id.toString()) {
-      return res.status(403).json({ error: 'You can only update your own listings' });
+      return res.status(403).json({ error: 'Not authorized to update this listing' });
     }
 
     // Update fields (only allow certain fields to be updated)
@@ -354,7 +373,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     if (listing.landlord.toString() !== req.landlord._id.toString()) {
-      return res.status(403).json({ error: 'You can only delete your own listings' });
+      return res.status(403).json({ error: 'Not authorized to delete this listing' });
     }
 
     await Listing.findByIdAndDelete(id);

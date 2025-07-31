@@ -4,9 +4,20 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/database');
 const corsOptions = require('./config/cors');
 const { sanitizeInput } = require('./middleware/sanitize');
+const { 
+  rateLimit, 
+  authRateLimit, 
+  securityHeaders, 
+  validateEnvironment,
+  createCorsMiddleware,
+  requestSizeLimit 
+} = require('./middleware/security');
 
 // Load all our environment variables from .env file
 dotenv.config();
+
+// Validate environment variables (fail fast if required vars missing)
+validateEnvironment();
 
 // Connect to our MongoDB database
 connectDB();
@@ -14,8 +25,13 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Setup CORS so frontend can talk to us
-app.use(cors(corsOptions));
+// Production security hardening
+app.use(securityHeaders);
+app.use(requestSizeLimit('10mb'));
+app.use(rateLimit());
+
+// Setup CORS with strict allowlist
+app.use(createCorsMiddleware());
 
 // Let Express parse JSON requests (with a reasonable size limit)
 app.use(express.json({
@@ -33,34 +49,9 @@ app.use((error, req, res, next) => {
 // Input sanitization middleware to prevent NoSQL injection
 app.use(sanitizeInput);
 
-// Simple health check - just tells us if the server is alive
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    message: 'UCR Housing API is running!', 
-    timestamp: new Date().toISOString() 
-  });
-});
-
-// Check if our database connection is working (useful for debugging)
-app.get('/api/db-test', async (req, res) => {
-  try {
-    const mongoose = require('mongoose');
-    const connectionState = mongoose.connection.readyState;
-    const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
-    
-    res.json({
-      message: 'Database connection test',
-      connectionState: states[connectionState],
-      databaseName: mongoose.connection.name || 'not connected',
-      host: mongoose.connection.host || 'not connected'
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Hook up all our API routes
-app.use('/api/auth', require('./routes/auth'));
+// Hook up all our API routes with appropriate security
+app.use('/api/health', require('./routes/health'));
+app.use('/api/auth', authRateLimit(), require('./routes/auth'));
 app.use('/api/listings', require('./routes/listings'));
 
 // Catch any errors that slip through

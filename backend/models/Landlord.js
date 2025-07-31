@@ -17,7 +17,8 @@ const landlordSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    trim: true
+    trim: true,
+    maxlength: [100, 'Name cannot exceed 100 characters']
   },
   phone: {
     type: String,

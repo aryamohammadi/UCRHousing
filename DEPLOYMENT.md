@@ -97,3 +97,4 @@ npm install -g vercel
 - Make your JWT secret actually secure (use a password generator)
 - HTTPS is handled automatically by hosting platforms
 - Double check your CORS settings work with your actual domain
+ 

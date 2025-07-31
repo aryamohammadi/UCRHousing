@@ -5,7 +5,7 @@ import EditListingForm from '../components/EditListingForm'
 import ApiService from '../services/api'
 
 function Dashboard() {
-  const { user, getAuthHeader } = useAuth()
+  const { user } = useAuth()
   
   // State for listings and UI
   const [listings, setListings] = useState([])
@@ -117,7 +117,7 @@ function Dashboard() {
   }
 
   // Handle successful listing creation
-  const handleFormSuccess = (newListing) => {
+  const handleFormSuccess = () => {
     setShowAddForm(false)
     // Refresh listings to show the new one
     fetchMyListings()
@@ -134,7 +134,7 @@ function Dashboard() {
   }
 
   // Handle successful listing edit
-  const handleEditSuccess = (updatedListing) => {
+  const handleEditSuccess = () => {
     setEditingListing(null)
     // Refresh listings to show the updated one
     fetchMyListings()

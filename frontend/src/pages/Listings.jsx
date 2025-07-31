@@ -88,16 +88,7 @@ function Listings() {
     fetchListings()
   }
 
-  // Format amenities for display
-  const formatAmenities = (amenities) => {
-    if (!amenities || amenities.length === 0) return 'No amenities listed'
-    
-    const formatted = amenities.map(amenity => {
-      return amenity.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
-    })
-    
-    return formatted.slice(0, 3).join(', ') + (formatted.length > 3 ? '...' : '')
-  }
+
 
   return (
     <main className="min-h-screen bg-gray-50">

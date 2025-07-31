@@ -29,9 +29,9 @@ function App() {
                 } 
               />
             </Routes>
-          </div>
+      </div>
           <Footer />
-        </div>
+      </div>
       </Router>
     </AuthProvider>
   )
