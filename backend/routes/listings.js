@@ -30,7 +30,9 @@ router.get('/', async (req, res) => {
     // Helper function to safely parse and validate numeric values
     const safeParseNumber = (value, min = 0, max = 999999) => {
       if (!value || typeof value === 'object' || Array.isArray(value)) return null;
-      const parsed = parseFloat(String(value).trim());
+      const stringValue = String(value).trim();
+      if (!stringValue || stringValue === 'undefined' || stringValue === 'null') return null;
+      const parsed = parseFloat(stringValue);
       if (isNaN(parsed) || parsed < min) return null;
       if (parsed > max) return 'exceeded'; // Special value for exceeded max
       return parsed;
@@ -39,7 +41,9 @@ router.get('/', async (req, res) => {
     // Helper function to safely parse integer values
     const safeParseInt = (value, min = 0, max = 100) => {
       if (!value || typeof value === 'object' || Array.isArray(value)) return null;
-      const parsed = parseInt(String(value).trim(), 10);
+      const stringValue = String(value).trim();
+      if (!stringValue || stringValue === 'undefined' || stringValue === 'null') return null;
+      const parsed = parseInt(stringValue, 10);
       if (isNaN(parsed) || parsed < min || parsed > max) return null;
       return parsed;
     };
@@ -63,14 +67,14 @@ router.get('/', async (req, res) => {
             pagination: { page: parseInt(page), limit: parseInt(limit), total: 0, pages: 0 }
           });
         }
-        if (minPriceNum !== null) {
+        if (minPriceNum !== null && minPriceNum !== undefined && !isNaN(minPriceNum)) {
           priceFilter.$gte = minPriceNum;
           hasPriceFilter = true;
         }
       }
       if (maxPrice) {
         maxPriceNum = safeParseNumber(maxPrice, 0, 50000);
-        if (maxPriceNum !== null && maxPriceNum !== 'exceeded') {
+        if (maxPriceNum !== null && maxPriceNum !== undefined && !isNaN(maxPriceNum) && maxPriceNum !== 'exceeded') {
           priceFilter.$lte = maxPriceNum;
           hasPriceFilter = true;
         }
@@ -96,13 +100,13 @@ router.get('/', async (req, res) => {
     // Room filtering (with enhanced validation)
     if (bedrooms) {
       const bedroomsNum = safeParseInt(bedrooms, 0, 20);
-      if (bedroomsNum !== null) {
+      if (bedroomsNum !== null && bedroomsNum !== undefined && !isNaN(bedroomsNum)) {
         filter.bedrooms = bedroomsNum;
       }
     }
     if (bathrooms) {
       const bathroomsNum = safeParseNumber(bathrooms, 0, 20);
-      if (bathroomsNum !== null) {
+      if (bathroomsNum !== null && bathroomsNum !== undefined && !isNaN(bathroomsNum) && bathroomsNum !== 'exceeded') {
         filter.bathrooms = bathroomsNum;
       }
     }
@@ -138,15 +142,49 @@ router.get('/', async (req, res) => {
     const validPage = safeParseInt(page, 1, 1000) || 1;
     const validLimit = safeParseInt(limit, 1, 100) || 20;
 
+    // Final validation: ensure filter object is clean before MongoDB query
+    const cleanFilter = { status: 'active' };
+    
+    // Only add filters that have valid values
+    if (filter.price && typeof filter.price === 'object' && Object.keys(filter.price).length > 0) {
+      // Double-check price filter values
+      const priceFilter = {};
+      if (filter.price.$gte !== undefined && !isNaN(filter.price.$gte)) {
+        priceFilter.$gte = filter.price.$gte;
+      }
+      if (filter.price.$lte !== undefined && !isNaN(filter.price.$lte)) {
+        priceFilter.$lte = filter.price.$lte;
+      }
+      if (Object.keys(priceFilter).length > 0) {
+        cleanFilter.price = priceFilter;
+      }
+    }
+    
+    if (filter.bedrooms !== undefined && !isNaN(filter.bedrooms)) {
+      cleanFilter.bedrooms = filter.bedrooms;
+    }
+    
+    if (filter.bathrooms !== undefined && !isNaN(filter.bathrooms)) {
+      cleanFilter.bathrooms = filter.bathrooms;
+    }
+    
+    if (filter.amenities) {
+      cleanFilter.amenities = filter.amenities;
+    }
+    
+    if (filter.$or) {
+      cleanFilter.$or = filter.$or;
+    }
+
     // Execute query with pagination
-    const listings = await Listing.find(filter)
+    const listings = await Listing.find(cleanFilter)
       .populate('landlord', 'name email phone')
       .sort({ createdAt: -1 })
       .limit(validLimit)
       .skip((validPage - 1) * validLimit);
 
     // Get total count for pagination
-    const total = await Listing.countDocuments(filter);
+    const total = await Listing.countDocuments(cleanFilter);
 
     res.json({
       listings,
