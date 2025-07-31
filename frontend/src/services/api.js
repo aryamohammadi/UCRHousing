@@ -17,22 +17,46 @@ class ApiService {
     }
 
     try {
+      console.log(`🌐 API Request: ${config.method || 'GET'} ${url}`)
       const response = await fetch(url, config)
-      const data = await response.json()
+      
+      // Try to get response data
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error('Failed to parse response as JSON:', parseError)
+        throw new Error('Server returned invalid response format')
+      }
 
       if (!response.ok) {
-        // Server gave us an error, pass it along
-        throw new Error(data.error || `HTTP error! status: ${response.status}`)
+        // More specific error handling based on status codes
+        if (response.status === 403) {
+          throw new Error(data.error || 'Access denied. Please check your connection and try again.')
+        } else if (response.status === 409) {
+          throw new Error(data.error || 'An account with this email already exists')
+        } else if (response.status === 400) {
+          throw new Error(data.error || 'Please check your input and try again')
+        } else if (response.status === 500) {
+          throw new Error('Server error. Please try again in a few moments.')
+        } else {
+          throw new Error(data.error || `Request failed (${response.status})`)
+        }
       }
 
       return data
     } catch (error) {
-      // Handle when internet is down or server is unreachable
+      // Network or CORS errors
       if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to connect to server. Please check your internet connection.')
+        throw new Error('Unable to connect to our servers. Please check your internet connection and try again.')
       }
       
-      // Pass the error up to whoever called this function
+      // CORS errors (often show as network errors)
+      if (error.message.includes('CORS') || error.message.includes('blocked')) {
+        throw new Error('Connection error. Please try refreshing the page.')
+      }
+      
+      // Pass through our custom errors
       throw error
     }
   }
@@ -52,30 +76,17 @@ class ApiService {
     })
   }
 
-  async getCurrentUser(token) {
-    return this.request('/auth/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-  }
-
-  // Listings stuff - CRUD operations for housing posts
+  // Listings
   async getListings(params = {}) {
-    const queryString = new URLSearchParams(params).toString()
-    const endpoint = queryString ? `/listings?${queryString}` : '/listings'
-    return this.request(endpoint)
-  }
-
-  async getListing(id) {
-    return this.request(`/listings/${id}`)
+    const searchParams = new URLSearchParams(params)
+    return this.request(`/listings?${searchParams}`)
   }
 
   async createListing(listingData, token) {
     return this.request('/listings', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(listingData),
     })
@@ -85,7 +96,7 @@ class ApiService {
     return this.request(`/listings/${id}`, {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(listingData),
     })
@@ -95,16 +106,29 @@ class ApiService {
     return this.request(`/listings/${id}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`
       },
     })
   }
 
-  // Just checks if the server is alive - useful for debugging
-  async healthCheck() {
-    return this.request('/health')
+  // Get landlord's own listings
+  async getMyListings(token) {
+    return this.request('/listings/my', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+    })
+  }
+
+  // Toggle listing status
+  async toggleListingStatus(id, token) {
+    return this.request(`/listings/${id}/toggle`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+    })
   }
 }
 
-// Create one instance and export it everywhere - saves memory
 export default new ApiService() 
