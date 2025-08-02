@@ -1,110 +1,56 @@
 const express = require('express');
 const mongoose = require('mongoose');
+
 const router = express.Router();
 
-// GET /api/health - Health check endpoint
-router.get('/', async (req, res) => {
-  const healthCheck = {
+// GET /api/health - Simple health check
+router.get('/', (req, res) => {
+  const health = {
+    message: 'UCR Housing API is running!',
     timestamp: new Date().toISOString(),
-    status: 'ok',
-    service: 'UCR Housing Backend',
-    version: process.env.GIT_SHA || 'unknown',
     environment: process.env.NODE_ENV || 'development',
-    uptime: Math.floor(process.uptime()),
-    database: 'unknown',
-    checks: {
-      database: false,
-      memory: false,
-      process: false
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    jwt_secret: process.env.JWT_SECRET ? 'configured' : 'missing',
+    mongodb_uri: process.env.MONGODB_URI ? 'configured' : 'missing'
+  };
+  
+  res.json(health);
+});
+
+// GET /api/health/detailed - More detailed health check
+router.get('/detailed', (req, res) => {
+  const detailed = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: {
+      NODE_ENV: process.env.NODE_ENV || 'not-set',
+      PORT: process.env.PORT || '3001',
+      hasJwtSecret: !!process.env.JWT_SECRET,
+      hasMongoUri: !!process.env.MONGODB_URI,
+      hasFrontendUrl: !!process.env.FRONTEND_URL
+    },
+    database: {
+      status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      host: mongoose.connection.host || 'unknown',
+      name: mongoose.connection.name || 'unknown'
+    },
+    server: {
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      platform: process.platform,
+      nodeVersion: process.version
     }
   };
-
-  try {
-    // Check database connection
-    const dbState = mongoose.connection.readyState;
-    if (dbState === 1) {
-      healthCheck.database = 'connected';
-      healthCheck.checks.database = true;
-      
-      // Test a simple database operation
-      await mongoose.connection.db.admin().ping();
-    } else {
-      healthCheck.database = 'disconnected';
-      healthCheck.status = 'degraded';
-    }
-
-    // Check memory usage
-    const memUsage = process.memoryUsage();
-    const memUsageMB = {
-      rss: Math.round(memUsage.rss / 1024 / 1024),
-      heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
-      heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
-      external: Math.round(memUsage.external / 1024 / 1024)
-    };
-    
-    healthCheck.memory = memUsageMB;
-    healthCheck.checks.memory = memUsageMB.heapUsed < 512; // Alert if using more than 512MB
-
-    // Check process health
-    healthCheck.checks.process = process.uptime() > 0;
-
-    // Overall status
-    const allChecksPass = Object.values(healthCheck.checks).every(check => check === true);
-    if (!allChecksPass && healthCheck.status === 'ok') {
-      healthCheck.status = 'degraded';
-    }
-
-    // Return appropriate status code
-    const statusCode = healthCheck.status === 'ok' ? 200 : 503;
-    res.status(statusCode).json(healthCheck);
-
-  } catch (error) {
-    console.error('Health check error:', error);
-    
-    healthCheck.status = 'error';
-    healthCheck.database = 'error';
-    healthCheck.error = error.message;
-    
-    res.status(503).json(healthCheck);
-  }
+  
+  res.json(detailed);
 });
 
-// GET /api/health/ready - Readiness probe for container orchestration
-router.get('/ready', async (req, res) => {
-  try {
-    // Check if database is ready
-    const dbState = mongoose.connection.readyState;
-    if (dbState !== 1) {
-      return res.status(503).json({
-        status: 'not ready',
-        reason: 'Database not connected'
-      });
-    }
-
-    // Test database connectivity
-    await mongoose.connection.db.admin().ping();
-    
-    res.status(200).json({
-      status: 'ready',
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('Readiness check error:', error);
-    res.status(503).json({
-      status: 'not ready',
-      reason: error.message
-    });
-  }
-});
-
-// GET /api/health/live - Liveness probe for container orchestration
-router.get('/live', (req, res) => {
-  // Simple liveness check - if this endpoint responds, the process is alive
-  res.status(200).json({
-    status: 'alive',
+// GET /api/health/test - Simple test that doesn't depend on anything
+router.get('/test', (req, res) => {
+  res.json({ 
+    test: 'success',
     timestamp: new Date().toISOString(),
-    uptime: Math.floor(process.uptime())
+    cors: req.headers.origin || 'no-origin'
   });
 });
 
