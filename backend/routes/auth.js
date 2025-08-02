@@ -5,8 +5,21 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Test endpoint that doesn't require JWT_SECRET
+router.get('/test', (req, res) => {
+  res.json({
+    test: 'auth routes working',
+    timestamp: new Date().toISOString(),
+    hasJwtSecret: !!process.env.JWT_SECRET,
+    origin: req.headers.origin || 'no-origin'
+  });
+});
+
 // Helper function to generate JWT token
 const generateToken = (landlordId) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
   return jwt.sign({ landlordId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d'
   });
