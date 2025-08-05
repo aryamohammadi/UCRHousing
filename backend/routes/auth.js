@@ -5,21 +5,11 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// EMERGENCY PRODUCTION HARDCODE: Railway isn't reading environment variables
+// EMERGENCY RAILWAY FIX: Hardcode regardless of environment
 const getJwtSecret = () => {
-  if (process.env.NODE_ENV === 'production') {
-    // HARDCODED for production Railway deployment
-    console.log('🚑 Using hardcoded production JWT_SECRET');
-    return '5ca2b60a803ac018f617bf748069e6f22abe6d2416a86fa0e19a4d31c6e4cc5613bc8156488d8c5612c0f47d62fc1782f32cca60d269b771b6076cc8fd9ff03c';
-  }
-  
-  if (process.env.JWT_SECRET) {
-    return process.env.JWT_SECRET;
-  }
-  
-  // EMERGENCY FALLBACK: Don't crash in production
-  console.warn('⚠️  JWT_SECRET not set, using fallback (NOT SECURE FOR PRODUCTION)');
-  return 'emergency-fallback-secret-not-secure-for-production-use';
+  // HARDCODED for Railway (Railway might not have NODE_ENV=production)
+  console.log('🚑 Using hardcoded JWT_SECRET for Railway');
+  return '5ca2b60a803ac018f617bf748069e6f22abe6d2416a86fa0e19a4d31c6e4cc5613bc8156488d8c5612c0f47d62fc1782f32cca60d269b771b6076cc8fd9ff03c';
 };
 
 // Helper function to generate JWT token with safe error handling
