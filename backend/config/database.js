@@ -2,16 +2,16 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    // EMERGENCY RAILWAY FIX: Hardcode regardless of environment
-    // Railway might not have NODE_ENV=production or environment variables set
-    const mongoURI = 'mongodb://mongo:HenGsHmsxgReveohpTWSTLvVSzpADZYX@mongodb-production-c5d1.up.railway.app:27017/ucrhousing';
-    console.log('🚑 Using hardcoded MongoDB URI for Railway');
+    // EMERGENCY RAILWAY FIX: Use internal Railway network
+    // Railway services communicate via mongodb.railway.internal, not public domains
+    const mongoURI = 'mongodb://mongo:HenGsHmsxgReveohpTWSTLvVSzpADZYX@mongodb.railway.internal:27017/ucrhousing';
+    console.log('🚑 Using hardcoded Railway internal MongoDB URI');
     
-    console.log(`Connecting to MongoDB... cloud`);
+    console.log(`Connecting to MongoDB... Railway-Internal`);
     
     const conn = await mongoose.connect(mongoURI, {
-      // Connection options for Railway and better reliability
-      serverSelectionTimeoutMS: 10000, // Increased timeout for Railway
+      // Connection options for Railway internal network
+      serverSelectionTimeoutMS: 5000, // Reduced timeout for internal network
       maxPoolSize: 5 // Reduced pool size for Railway
     });
 
