@@ -2,12 +2,13 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    // EMERGENCY RAILWAY FIX: Use internal Railway network
-    // Railway services communicate via mongodb.railway.internal, not public domains
-    const mongoURI = 'mongodb://mongo:HenGsHmsxgReveohpTWSTLvVSzpADZYX@mongodb.railway.internal:27017/ucrhousing';
-    console.log('🚑 Using hardcoded Railway internal MongoDB URI');
+    // EMERGENCY RAILWAY FIX: Use correct Railway internal private domain
+    // Based on public domain: mongodb-production-c5d1.up.railway.app
+    // Internal equivalent: mongodb-production-c5d1.railway.internal
+    const mongoURI = 'mongodb://mongo:HenGsHmsxgReveohpTWSTLvVSzpADZYX@mongodb-production-c5d1.railway.internal:27017/ucrhousing';
+    console.log('🚑 Using Railway internal private domain for MongoDB');
     
-    console.log(`Connecting to MongoDB... Railway-Internal`);
+    console.log(`Connecting to MongoDB... Railway-Private`);
     
     const conn = await mongoose.connect(mongoURI, {
       // Connection options for Railway internal network
