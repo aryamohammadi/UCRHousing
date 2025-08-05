@@ -17,6 +17,20 @@ router.get('/', (req, res) => {
   res.json(health);
 });
 
+// GET /api/health/env - PRODUCTION DIAGNOSTIC - Check environment variables
+router.get('/env', (req, res) => {
+  const envStatus = {
+    timestamp: new Date().toISOString(),
+    NODE_ENV: process.env.NODE_ENV || 'NOT_SET',
+    JWT_SECRET: process.env.JWT_SECRET ? `SET (${process.env.JWT_SECRET.length} chars)` : 'NOT_SET',
+    MONGODB_URI: process.env.MONGODB_URI ? `SET (${process.env.MONGODB_URI.substring(0, 20)}...)` : 'NOT_SET',
+    FRONTEND_URL: process.env.FRONTEND_URL || 'NOT_SET',
+    PORT: process.env.PORT || 'NOT_SET'
+  };
+  
+  res.json(envStatus);
+});
+
 // GET /api/health/detailed - More detailed health check
 router.get('/detailed', (req, res) => {
   const detailed = {
