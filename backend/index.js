@@ -124,12 +124,23 @@ app.use((req, res, next) => {
     console.log('Content-Length:', req.headers['content-length']);
     console.log('Body present:', !!req.body);
     console.log('Body type:', typeof req.body);
+    
+    // Check if Content-Type is correct
+    const contentType = req.headers['content-type'] || '';
+    if (!contentType.includes('application/json')) {
+      console.error('⚠️  WARNING: Content-Type is not application/json!');
+      console.error('Received Content-Type:', contentType);
+      console.error('Expected: application/json');
+    }
+    
     if (req.body) {
       console.log('Body keys:', Object.keys(req.body));
       console.log('Body sample:', JSON.stringify(req.body).substring(0, 200));
     } else {
       console.error('⚠️  WARNING: req.body is undefined/null!');
       console.error('Raw headers:', req.headers);
+      console.error('Request URL:', req.url);
+      console.error('Request path:', req.path);
     }
   }
   next();
