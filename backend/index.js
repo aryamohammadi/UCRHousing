@@ -39,8 +39,11 @@ app.use(cors({
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 // Basic security headers
@@ -74,6 +77,15 @@ app.use('/api/listings', require('./routes/listings'));
 // Basic error handler
 app.use((error, req, res, next) => {
   console.error('Server error:', error);
+  
+  // Handle CORS errors specifically
+  if (error.message === 'Not allowed by CORS') {
+    return res.status(403).json({ 
+      error: 'CORS: Origin not allowed',
+      origin: req.headers.origin
+    });
+  }
+  
   res.status(500).json({ 
     error: 'Internal server error'
   });
