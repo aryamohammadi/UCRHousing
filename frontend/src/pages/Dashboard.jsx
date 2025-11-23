@@ -25,15 +25,13 @@ function Dashboard() {
       setLoading(true)
       setError('')
 
-      // Use ApiService instead of hardcoded localhost URL
-      const data = await ApiService.request('/listings/my', {
-        headers: {
-          Authorization: `Bearer ${user.token}`
-        }
-      })
+      // Use the getMyListings method which handles auth properly
+      const data = await ApiService.getMyListings(user.token)
       
-      const userListings = data.listings || []
+      // Handle both response formats: { listings: [...] } or { success: true, listings: [...] }
+      const userListings = data.listings || data || []
       
+      console.log('Fetched listings:', userListings.length)
       setListings(userListings)
       
       // Calculate real stats from user's listings
@@ -48,7 +46,19 @@ function Dashboard() {
 
     } catch (error) {
       console.error('Error fetching user listings:', error)
-      setError('Unable to load your listings. Please try again later.')
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response
+      })
+      
+      // Provide more specific error messages
+      if (error.message.includes('token') || error.message.includes('Invalid')) {
+        setError('Your session has expired. Please log in again.')
+      } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        setError('Authentication failed. Please log in again.')
+      } else {
+        setError('Unable to load your listings. Please try again later.')
+      }
     } finally {
       setLoading(false)
     }

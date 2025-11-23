@@ -167,17 +167,26 @@ router.get('/', async (req, res) => {
 // GET /api/listings/my - Get current user's listings (protected)
 router.get('/my', authenticateToken, async (req, res) => {
   try {
+    console.log('Fetching listings for landlord:', req.landlord._id);
+    
     const listings = await Listing.find({ landlord: req.landlord._id })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean(); // Use lean() for better performance
+
+    console.log(`Found ${listings.length} listings for landlord ${req.landlord._id}`);
 
     res.json({
       success: true,
-      listings
+      listings: listings || []
     });
 
   } catch (error) {
     console.error('Get my listings error:', error);
-    res.status(500).json({ error: 'Server error while fetching your listings' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Server error while fetching your listings',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
