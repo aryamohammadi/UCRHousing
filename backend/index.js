@@ -66,6 +66,9 @@ app.use((error, req, res, next) => {
   next();
 });
 
+// Handle preflight OPTIONS requests explicitly
+app.options('*', cors());
+
 // Input sanitization
 app.use(sanitizeInput);
 
