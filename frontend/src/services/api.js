@@ -42,6 +42,21 @@ class ApiService {
         'Authorization': config.headers['Authorization'] ? `${config.headers['Authorization'].substring(0, 30)}...` : 'NOT SET'
       })
       
+      // Log body for POST/PUT/PATCH requests
+      if (config.body && (config.method === 'POST' || config.method === 'PUT' || config.method === 'PATCH')) {
+        console.log('📦 Request body present:', !!config.body)
+        console.log('📦 Request body type:', typeof config.body)
+        if (typeof config.body === 'string') {
+          try {
+            const bodyObj = JSON.parse(config.body)
+            console.log('📦 Request body keys:', Object.keys(bodyObj))
+            console.log('📦 Request body preview:', JSON.stringify(bodyObj).substring(0, 200))
+          } catch (e) {
+            console.log('📦 Request body (raw):', config.body.substring(0, 200))
+          }
+        }
+      }
+      
       const response = await fetch(url, config)
       console.log(`📥 Response status: ${response.status} ${response.statusText}`)
       
