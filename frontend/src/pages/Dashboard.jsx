@@ -5,7 +5,7 @@ import EditListingForm from '../components/EditListingForm'
 import ApiService from '../services/api'
 
 function Dashboard() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   
   // State for listings and UI
   const [listings, setListings] = useState([])
@@ -25,13 +25,34 @@ function Dashboard() {
       setLoading(true)
       setError('')
 
+      // Debug logging
+      console.log('🔍 Dashboard: Fetching listings...')
+      console.log('👤 User object:', user ? { email: user.email, name: user.name } : 'NO USER')
+      console.log('🎫 Token from context:', token ? `Token exists (${token.length} chars)` : 'NO TOKEN')
+      console.log('🎫 Token preview:', token ? `${token.substring(0, 20)}...${token.substring(token.length - 10)}` : 'NO TOKEN')
+
+      if (!user || !token) {
+        console.error('❌ No user or token available')
+        console.error('User:', user)
+        console.error('Token:', token)
+        setError('Not logged in. Please log in again.')
+        setLoading(false)
+        return
+      }
+
       // Use the getMyListings method which handles auth properly
-      const data = await ApiService.getMyListings(user.token)
+      console.log('📡 Calling API: getMyListings with token')
+      const data = await ApiService.getMyListings(token)
+      console.log('✅ API response received:', { 
+        hasListings: !!data.listings, 
+        listingsCount: data.listings?.length || 0,
+        success: data.success
+      })
       
       // Handle both response formats: { listings: [...] } or { success: true, listings: [...] }
       const userListings = data.listings || data || []
       
-      console.log('Fetched listings:', userListings.length)
+      console.log('✅ Fetched listings:', userListings.length)
       setListings(userListings)
       
       // Calculate real stats from user's listings
@@ -45,19 +66,34 @@ function Dashboard() {
       })
 
     } catch (error) {
-      console.error('Error fetching user listings:', error)
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response
-      })
+      console.error('❌ Error fetching user listings:', error)
+      console.error('Error name:', error.name)
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
       
-      // Provide more specific error messages
-      if (error.message.includes('token') || error.message.includes('Invalid')) {
-        setError('Your session has expired. Please log in again.')
-      } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-        setError('Authentication failed. Please log in again.')
+      // Detailed error logging
+      const errorDetails = {
+        message: error.message,
+        name: error.name,
+        user: user ? { email: user.email, name: user.name } : 'NO USER',
+        tokenPresent: !!token,
+        tokenPreview: token ? `${token.substring(0, 20)}...` : 'NO TOKEN'
+      }
+      console.error('Error details:', errorDetails)
+      
+      // Provide very specific error messages
+      if (error.message.includes('token') || error.message.includes('Invalid token')) {
+        console.error('🔴 Token-related error detected')
+        setError('Your session has expired. Please log in again. (Token invalid)')
+      } else if (error.message.includes('401') || error.message.includes('Unauthorized') || error.message.includes('Access denied')) {
+        console.error('🔴 Authentication error detected')
+        setError('Authentication failed. Please log in again. (401 Unauthorized)')
+      } else if (error.message.includes('expired')) {
+        console.error('🔴 Token expired')
+        setError('Your session has expired. Please log in again. (Token expired)')
       } else {
-        setError('Unable to load your listings. Please try again later.')
+        console.error('🔴 Unknown error')
+        setError(`Unable to load your listings: ${error.message}`)
       }
     } finally {
       setLoading(false)
@@ -80,7 +116,7 @@ function Dashboard() {
       await ApiService.request(`/listings/${listingId}`, {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${user.token}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ status: newStatus })
       })
@@ -104,7 +140,7 @@ function Dashboard() {
       await ApiService.request(`/listings/${listingId}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${user.token}`
+          Authorization: `Bearer ${token}`
         }
       })
 

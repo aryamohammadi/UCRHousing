@@ -37,7 +37,13 @@ class ApiService {
 
     try {
       console.log(`🌐 API Request: ${config.method || 'GET'} ${url}`)
+      console.log('📋 Request headers:', {
+        'Content-Type': config.headers['Content-Type'],
+        'Authorization': config.headers['Authorization'] ? `${config.headers['Authorization'].substring(0, 30)}...` : 'NOT SET'
+      })
+      
       const response = await fetch(url, config)
+      console.log(`📥 Response status: ${response.status} ${response.statusText}`)
       
       // Try to get response data
       let data
@@ -49,15 +55,23 @@ class ApiService {
       }
 
       if (!response.ok) {
+        console.error(`❌ API Error: ${response.status} ${response.statusText}`)
+        console.error('Error response data:', data)
+        
         // More specific error handling based on status codes
-        if (response.status === 403) {
+        if (response.status === 401) {
+          const errorMsg = data.error || 'Authentication failed'
+          const debugMsg = data.debug ? ` (${data.debug})` : ''
+          console.error('🔴 401 Unauthorized:', errorMsg, debugMsg)
+          throw new Error(`${errorMsg}${debugMsg}`)
+        } else if (response.status === 403) {
           throw new Error(data.error || 'Access denied. Please check your connection and try again.')
         } else if (response.status === 409) {
           throw new Error(data.error || 'An account with this email already exists')
         } else if (response.status === 400) {
           throw new Error(data.error || 'Please check your input and try again')
         } else if (response.status === 500) {
-          throw new Error('Server error. Please try again in a few moments.')
+          throw new Error(data.error || 'Server error. Please try again in a few moments.')
         } else {
           throw new Error(data.error || `Request failed (${response.status})`)
         }

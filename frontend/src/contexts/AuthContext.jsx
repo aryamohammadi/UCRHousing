@@ -22,15 +22,27 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = () => {
       try {
+        console.log('🔐 AuthContext: Initializing auth from localStorage')
         const storedToken = localStorage.getItem('auth_token')
         const storedUser = localStorage.getItem('auth_user')
         
+        console.log('🔐 AuthContext: Stored token present:', !!storedToken)
+        console.log('🔐 AuthContext: Stored user present:', !!storedUser)
+        
         if (storedToken && storedUser) {
+          const parsedUser = JSON.parse(storedUser)
+          console.log('🔐 AuthContext: Restoring auth state', {
+            userEmail: parsedUser.email,
+            tokenLength: storedToken.length,
+            tokenPreview: `${storedToken.substring(0, 20)}...`
+          })
           setToken(storedToken)
-          setUser(JSON.parse(storedUser))
+          setUser(parsedUser)
+        } else {
+          console.log('🔐 AuthContext: No stored auth data found')
         }
       } catch (error) {
-        console.error('Error initializing auth:', error)
+        console.error('❌ AuthContext: Error initializing auth:', error)
         // Clear corrupted data
         localStorage.removeItem('auth_token')
         localStorage.removeItem('auth_user')
@@ -45,14 +57,22 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = (userData, authToken) => {
     try {
+      console.log('🔐 AuthContext: Login called', {
+        userEmail: userData?.email,
+        tokenLength: authToken?.length,
+        tokenPreview: authToken ? `${authToken.substring(0, 20)}...` : 'NO TOKEN'
+      })
+      
       setUser(userData)
       setToken(authToken)
       
       // Store in localStorage for persistence
       localStorage.setItem('auth_token', authToken)
       localStorage.setItem('auth_user', JSON.stringify(userData))
+      
+      console.log('✅ AuthContext: Auth data stored successfully')
     } catch (error) {
-      console.error('Error storing auth data:', error)
+      console.error('❌ AuthContext: Error storing auth data:', error)
     }
   }
 
