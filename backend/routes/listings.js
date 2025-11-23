@@ -16,6 +16,14 @@ const validateStringInput = (value, fieldName) => {
 // GET /api/listings - Get all active listings (public)
 router.get('/', async (req, res) => {
   try {
+    // Check database connection
+    if (mongoose.connection.readyState !== 1) {
+      console.error('Database not connected. Ready state:', mongoose.connection.readyState);
+      return res.status(503).json({ 
+        error: 'Database temporarily unavailable. Please try again later.'
+      });
+    }
+
     const { 
       page = 1, 
       limit = 20, 
@@ -69,10 +77,16 @@ router.get('/', async (req, res) => {
     // Get listings and count
     const [listings, totalCount] = await Promise.all([
       Listing.find(filter)
-        .populate('landlord', 'name email')
+        .populate({
+          path: 'landlord',
+          select: 'name email',
+          // Handle missing landlord references gracefully
+          options: { lean: true }
+        })
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limitNum),
+        .limit(limitNum)
+        .lean(), // Use lean() for better performance and to avoid Mongoose document issues
       Listing.countDocuments(filter)
     ]);
 
@@ -99,7 +113,20 @@ router.get('/', async (req, res) => {
 
   } catch (error) {
     console.error('Get listings error:', error);
-    res.status(500).json({ error: 'Server error while fetching listings' });
+    console.error('Error stack:', error.stack);
+    
+    // Check if it's a database connection error
+    if (error.name === 'MongoServerError' || error.message.includes('Mongo')) {
+      console.error('MongoDB connection error detected');
+      return res.status(503).json({ 
+        error: 'Database temporarily unavailable. Please try again later.'
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Server error while fetching listings',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
