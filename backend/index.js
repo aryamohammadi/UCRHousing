@@ -1,19 +1,32 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const connectDB = require('./config/database');
 const { sanitizeInput } = require('./middleware/sanitize');
 
 // Load environment variables
 dotenv.config();
 
-// Connect to database
-connectDB();
+// Connect to database - wait for connection before starting server
+(async () => {
+  await connectDB();
+  
+  // Only start server if database is connected (or in dev mode)
+  if (mongoose.connection.readyState === 1 || process.env.NODE_ENV !== 'production') {
+    startServer();
+  } else {
+    console.error('❌ Cannot start server without database connection');
+    process.exit(1);
+  }
+})();
+
+function startServer() {
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Basic CORS setup
+// Basic CORS setup - MUST be before other middleware
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
@@ -21,7 +34,7 @@ const allowedOrigins = [
   'https://www.dormduos.com'
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, Postman)
     if (!origin) return callback(null, true);
@@ -44,7 +57,10 @@ app.use(cors({
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   preflightContinue: false,
   optionsSuccessStatus: 204
-}));
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
 
 // Basic security headers
 app.use((req, res, next) => {
@@ -94,10 +110,12 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Frontend should connect from http://localhost:5173`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
-}); 
+  // Start server
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🌐 Frontend should connect from http://localhost:5173`);
+    console.log(`⚙️  Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔒 Allowed origins: ${allowedOrigins.join(', ')}`);
+    console.log(`💾 Database status: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected'}`);
+  });
+} 
