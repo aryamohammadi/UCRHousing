@@ -7,12 +7,31 @@ const connectDB = async () => {
     // DO NOT use MONGO_PUBLIC_URL (external, incurs egress fees)
     const mongoURI = process.env.MONGO_URL || process.env.MONGODB_URI;
     
+    // Debug: Show what we found
+    console.log('🔍 Environment variable check:');
+    console.log('  MONGO_URL:', process.env.MONGO_URL ? `SET (${process.env.MONGO_URL.substring(0, 30)}...)` : 'NOT SET');
+    console.log('  MONGODB_URI:', process.env.MONGODB_URI ? `SET (${process.env.MONGODB_URI.substring(0, 30)}...)` : 'NOT SET');
+    
     if (!mongoURI) {
       console.error('❌ MongoDB connection string not found');
       console.error('Please set either MONGO_URL (Railway MongoDB) or MONGODB_URI (MongoDB Atlas)');
       console.error('⚠️  Do NOT use MONGO_PUBLIC_URL (it incurs egress fees)');
+      console.error('');
+      console.error('To fix: Go to Railway → Backend Service → Variables → Add MONGODB_URI');
       if (process.env.NODE_ENV === 'production') {
         // In production, we should exit if DB is not configured
+        console.error('Exiting - Railway will restart');
+        process.exit(1);
+      }
+      return;
+    }
+    
+    // Prevent connecting to localhost in production
+    if (mongoURI.includes('localhost') || mongoURI.includes('127.0.0.1')) {
+      console.error('❌ Invalid MongoDB URI - contains localhost');
+      console.error('This will not work on Railway. Use MongoDB Atlas or Railway MongoDB service.');
+      console.error('Current URI (masked):', mongoURI.replace(/:[^:@]+@/, ':****@'));
+      if (process.env.NODE_ENV === 'production') {
         process.exit(1);
       }
       return;
