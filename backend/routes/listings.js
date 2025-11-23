@@ -230,16 +230,31 @@ router.post('/', authenticateToken, async (req, res) => {
       'content-type': req.headers['content-type'],
       'content-length': req.headers['content-length']
     });
+    console.log('📋 Raw request:', {
+      method: req.method,
+      url: req.url,
+      headers: req.headers
+    });
     
-    // Check if body is undefined
-    if (!req.body || typeof req.body !== 'object') {
-      console.error('❌ req.body is invalid:', req.body);
+    // Check if body is undefined - this must be done BEFORE destructuring
+    if (req.body === undefined || req.body === null) {
+      console.error('❌ req.body is undefined or null');
+      console.error('Request headers:', req.headers);
       return res.status(400).json({ 
         error: 'Invalid request body',
-        debug: `req.body is ${req.body === undefined ? 'undefined' : typeof req.body}`
+        debug: 'req.body is undefined. Check Content-Type header is application/json'
       });
     }
     
+    if (typeof req.body !== 'object') {
+      console.error('❌ req.body is not an object:', typeof req.body, req.body);
+      return res.status(400).json({ 
+        error: 'Invalid request body format',
+        debug: `req.body is ${typeof req.body}, expected object`
+      });
+    }
+    
+    // Now safe to destructure
     const {
       title,
       description,
@@ -255,7 +270,7 @@ router.post('/', authenticateToken, async (req, res) => {
       contact_phone,
       parking_type,
       campus_proximity
-    } = req.body;
+    } = req.body || {};
 
     // Basic validation
     if (!title || !description || !price || bedrooms === undefined || bathrooms === undefined || !address) {

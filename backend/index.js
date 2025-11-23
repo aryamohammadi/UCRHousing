@@ -97,9 +97,17 @@ app.use((req, res, next) => {
 });
 
 // Parse JSON requests with increased limit for larger payloads
-app.use(express.json({ limit: '10mb' }));
+// This MUST be before any routes that need req.body
+app.use(express.json({ 
+  limit: '10mb',
+  type: 'application/json',
+  strict: true
+}));
 
-// Log incoming requests for debugging
+// Also parse URL-encoded bodies (just in case)
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Log incoming requests for debugging - AFTER body parsing
 app.use((req, res, next) => {
   if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
     console.log(`📥 ${req.method} ${req.path}`);
@@ -109,6 +117,10 @@ app.use((req, res, next) => {
     console.log('Body type:', typeof req.body);
     if (req.body) {
       console.log('Body keys:', Object.keys(req.body));
+      console.log('Body sample:', JSON.stringify(req.body).substring(0, 200));
+    } else {
+      console.error('⚠️  WARNING: req.body is undefined/null!');
+      console.error('Raw headers:', req.headers);
     }
   }
   next();
