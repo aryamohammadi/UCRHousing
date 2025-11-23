@@ -223,6 +223,23 @@ router.get('/:id', async (req, res) => {
 // POST /api/listings - Create new listing (protected)
 router.post('/', authenticateToken, async (req, res) => {
   try {
+    console.log('📝 Create listing request received');
+    console.log('📋 Request body type:', typeof req.body);
+    console.log('📋 Request body:', req.body);
+    console.log('📋 Request headers:', {
+      'content-type': req.headers['content-type'],
+      'content-length': req.headers['content-length']
+    });
+    
+    // Check if body is undefined
+    if (!req.body || typeof req.body !== 'object') {
+      console.error('❌ req.body is invalid:', req.body);
+      return res.status(400).json({ 
+        error: 'Invalid request body',
+        debug: `req.body is ${req.body === undefined ? 'undefined' : typeof req.body}`
+      });
+    }
+    
     const {
       title,
       description,

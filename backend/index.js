@@ -96,8 +96,23 @@ app.use((req, res, next) => {
   next();
 });
 
-// Parse JSON requests
-app.use(express.json());
+// Parse JSON requests with increased limit for larger payloads
+app.use(express.json({ limit: '10mb' }));
+
+// Log incoming requests for debugging
+app.use((req, res, next) => {
+  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+    console.log(`📥 ${req.method} ${req.path}`);
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('Content-Length:', req.headers['content-length']);
+    console.log('Body present:', !!req.body);
+    console.log('Body type:', typeof req.body);
+    if (req.body) {
+      console.log('Body keys:', Object.keys(req.body));
+    }
+  }
+  next();
+});
 
 // Basic JSON error handling
 app.use((error, req, res, next) => {
