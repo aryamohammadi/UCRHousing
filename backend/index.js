@@ -135,7 +135,14 @@ app.use((error, req, res, next) => {
 });
 
 // Handle preflight OPTIONS requests explicitly
-app.options('*', cors());
+// This must handle the body properly for CORS preflight
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(204);
+});
 
 // Input sanitization
 app.use(sanitizeInput);

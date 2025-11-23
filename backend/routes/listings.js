@@ -221,41 +221,45 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/listings - Create new listing (protected)
+// Version: 2.0 - Fixed body parsing issue
 router.post('/', authenticateToken, async (req, res) => {
   try {
+    // CRITICAL: Check body BEFORE any destructuring to prevent errors
+    // This is a safety check in case express.json() didn't parse the body
+    if (req.body === undefined || req.body === null) {
+      console.error('❌ CRITICAL: req.body is undefined/null at route handler');
+      console.error('Request method:', req.method);
+      console.error('Request path:', req.path);
+      console.error('Content-Type header:', req.headers['content-type']);
+      console.error('Content-Length header:', req.headers['content-length']);
+      console.error('All headers:', req.headers);
+      
+      return res.status(400).json({ 
+        error: 'Invalid request body',
+        debug: 'req.body is undefined. The request body was not parsed. Check Content-Type header is exactly "application/json"',
+        version: '2.0'
+      });
+    }
+    
     console.log('📝 Create listing request received');
     console.log('📋 Request body type:', typeof req.body);
-    console.log('📋 Request body:', req.body);
+    console.log('📋 Request body keys:', req.body ? Object.keys(req.body) : 'N/A');
     console.log('📋 Request headers:', {
       'content-type': req.headers['content-type'],
       'content-length': req.headers['content-length']
     });
-    console.log('📋 Raw request:', {
-      method: req.method,
-      url: req.url,
-      headers: req.headers
-    });
     
-    // Check if body is undefined - this must be done BEFORE destructuring
-    if (req.body === undefined || req.body === null) {
-      console.error('❌ req.body is undefined or null');
-      console.error('Request headers:', req.headers);
-      return res.status(400).json({ 
-        error: 'Invalid request body',
-        debug: 'req.body is undefined. Check Content-Type header is application/json'
-      });
-    }
-    
-    if (typeof req.body !== 'object') {
-      console.error('❌ req.body is not an object:', typeof req.body, req.body);
+    if (typeof req.body !== 'object' || Array.isArray(req.body)) {
+      console.error('❌ req.body is not a plain object:', typeof req.body, Array.isArray(req.body));
       return res.status(400).json({ 
         error: 'Invalid request body format',
-        debug: `req.body is ${typeof req.body}, expected object`
+        debug: `req.body is ${typeof req.body}, expected plain object`,
+        version: '2.0'
       });
     }
     
-    // Now safe to destructure - use empty object as fallback
-    const body = req.body || {};
+    // Now safe to destructure - use the body directly
+    const body = req.body;
     const {
       title,
       description,
