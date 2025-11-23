@@ -20,17 +20,27 @@ dotenv.config();
     
     await connectDB();
     
-    // Wait a moment for connection to stabilize
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Check connection state
-    const dbState = mongoose.connection.readyState;
+    // Wait for connection to stabilize with retries
+    const maxRetries = 5;
+    let retries = 0;
+    let dbState = mongoose.connection.readyState;
     const stateNames = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+    
+    // Wait for connection with retries (up to 5 seconds total)
+    while (dbState !== 1 && retries < maxRetries) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      dbState = mongoose.connection.readyState;
+      console.log(`Connection check ${retries + 1}/${maxRetries}: ${stateNames[dbState] || 'unknown'}`);
+      retries++;
+    }
+    
     console.log('Database ready state after connection attempt:', dbState, `(${stateNames[dbState] || 'unknown'})`);
     
     // Only start server if database is connected
     if (dbState === 1) {
       console.log('✅ Database connected, starting server...');
+      console.log(`📊 Database: ${mongoose.connection.name || 'unknown'}`);
+      console.log(`🔗 Host: ${mongoose.connection.host || 'unknown'}`);
       startServer();
     } else {
       console.error('❌ Cannot start server without database connection');
@@ -181,11 +191,34 @@ app.use((error, req, res, next) => {
 });
 
   // Start server
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`🌐 Frontend should connect from http://localhost:5173`);
-    console.log(`⚙️  Environment: ${process.env.NODE_ENV || 'development'}`);
+  // Bind to 0.0.0.0 to accept connections from all network interfaces (required for Railway)
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔒 Allowed origins: ${allowedOrigins.join(', ')}`);
     console.log(`💾 Database status: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected'}`);
+    console.log(`📡 Server is ready to accept connections`);
+  });
+  
+  // Handle server errors
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is already in use`);
+    } else {
+      console.error('❌ Server error:', error);
+    }
+    process.exit(1);
+  });
+  
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+    server.close(() => {
+      console.log('Server closed');
+      mongoose.connection.close(false, () => {
+        console.log('Database connection closed');
+        process.exit(0);
+      });
+    });
   });
 } 
