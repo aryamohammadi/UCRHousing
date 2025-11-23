@@ -147,13 +147,15 @@ router.post('/login', async (req, res) => {
     // Find user
     const landlord = await Landlord.findOne({ email: validatedEmail });
     if (!landlord) {
-      return res.status(400).json({
-        error: 'Invalid credentials'
+      console.log('Login failed: User not found for email:', validatedEmail);
+      return res.status(401).json({
+        error: 'Invalid email or password'
       });
     }
     
     // Check if account is active
     if (!landlord.isActive) {
+      console.log('Login failed: Account deactivated for email:', validatedEmail);
       return res.status(401).json({
         error: 'Account has been deactivated'
       });
@@ -162,10 +164,13 @@ router.post('/login', async (req, res) => {
     // Check password
     const isPasswordValid = await landlord.comparePassword(validatedPassword);
     if (!isPasswordValid) {
-      return res.status(400).json({
-        error: 'Invalid credentials'
+      console.log('Login failed: Invalid password for email:', validatedEmail);
+      return res.status(401).json({
+        error: 'Invalid email or password'
       });
     }
+    
+    console.log('Login successful for email:', validatedEmail);
     
     // Generate token
     const token = generateToken(landlord._id);

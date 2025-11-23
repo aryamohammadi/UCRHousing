@@ -30,13 +30,19 @@ const authenticateToken = async (req, res, next) => {
     
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
+      console.error('JWT verification failed:', error.message);
+      console.error('Token provided:', token ? `${token.substring(0, 20)}...` : 'none');
+      console.error('JWT_SECRET set:', !!process.env.JWT_SECRET);
       return res.status(401).json({ error: 'Invalid token.' });
     }
     if (error.name === 'TokenExpiredError') {
+      console.error('Token expired');
       return res.status(401).json({ error: 'Token expired.' });
     }
     
     console.error('Auth middleware error:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
     res.status(500).json({ error: 'Authentication error.' });
   }
 };
