@@ -54,7 +54,7 @@ router.post('/register', async (req, res) => {
     } catch (validationError) {
       console.log('Input validation failed:', validationError.message);
       return res.status(400).json({
-        error: `Input validation failed: ${validationError.message}`
+        error: `type validation failed: ${validationError.message}`
       });
     }
     
@@ -90,15 +90,15 @@ router.post('/register', async (req, res) => {
     
     console.log('Token generated');
     
+    // Get landlord data (password removed by toJSON method)
+    const landlordData = landlord.toJSON();
+    landlordData.id = landlordData._id;
+    
     res.status(201).json({
       success: true,
       message: 'Registration successful',
       token,
-      landlord: {
-        id: landlord._id,
-        email: landlord.email,
-        name: landlord.name
-      }
+      landlord: landlordData
     });
     
   } catch (error) {
@@ -108,6 +108,14 @@ router.post('/register', async (req, res) => {
       stack: error.stack,
       code: error.code
     });
+
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message).join(', ');
+      return res.status(400).json({ 
+        error: `validation failed: ${validationErrors}` 
+      });
+    }
 
     res.status(500).json({ error: 'Server error during registration' });
   }
@@ -132,7 +140,7 @@ router.post('/login', async (req, res) => {
       validatedPassword = validateStringInput(password, 'Password');
     } catch (validationError) {
       return res.status(400).json({
-        error: `Input validation failed: ${validationError.message}`
+        error: `type validation failed: ${validationError.message}`
       });
     }
     
@@ -162,15 +170,15 @@ router.post('/login', async (req, res) => {
     // Generate token
     const token = generateToken(landlord._id);
     
+    // Get landlord data (password removed by toJSON method)
+    const landlordData = landlord.toJSON();
+    landlordData.id = landlordData._id;
+    
     res.json({
       success: true,
       message: 'Login successful',
       token,
-      landlord: {
-        id: landlord._id,
-        email: landlord.email,
-        name: landlord.name
-      }
+      landlord: landlordData
     });
     
   } catch (error) {

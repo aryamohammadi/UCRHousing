@@ -79,7 +79,9 @@ class ApiService {
   // Listings
   async getListings(params = {}) {
     const searchParams = new URLSearchParams(params)
-    return this.request(`/listings?${searchParams}`)
+    const queryString = searchParams.toString()
+    const endpoint = queryString ? `/listings?${queryString}` : '/listings'
+    return this.request(endpoint)
   }
 
   async createListing(listingData, token) {

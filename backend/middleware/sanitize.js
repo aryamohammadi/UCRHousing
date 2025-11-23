@@ -14,7 +14,7 @@ const sanitizeInput = (req, res, next) => {
     for (const [key, value] of Object.entries(obj)) {
       // Remove some dangerous MongoDB operators that students might encounter
       if (key.startsWith('$')) {
-        console.log(`Removed potentially dangerous operator: ${key}`);
+        console.log(`🛡️  Blocked dangerous MongoDB operator: ${key}`);
         continue;
       }
 

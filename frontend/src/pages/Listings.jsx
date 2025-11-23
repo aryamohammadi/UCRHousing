@@ -50,8 +50,9 @@ function Listings() {
         }
       }
 
-      // Make API call
-      const response = await ApiService.getListings(Object.fromEntries(params))
+      // Make API call - convert URLSearchParams to object for API service
+      const paramsObj = Object.fromEntries(params)
+      const response = await ApiService.getListings(paramsObj)
       
       setListings(response.listings || [])
       setPagination(response.pagination || {})

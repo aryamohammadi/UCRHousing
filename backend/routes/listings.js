@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Listing = require('../models/Listing');
 const { authenticateToken } = require('../middleware/auth');
 
@@ -30,10 +31,10 @@ router.get('/', async (req, res) => {
     const filter = { status: 'active' };
 
     // Price filtering
-    if (minPrice && !isNaN(minPrice)) {
+    if (minPrice && !isNaN(minPrice) && parseFloat(minPrice) >= 0) {
       filter.price = { ...filter.price, $gte: parseFloat(minPrice) };
     }
-    if (maxPrice && !isNaN(maxPrice)) {
+    if (maxPrice && !isNaN(maxPrice) && parseFloat(maxPrice) >= 0) {
       filter.price = { ...filter.price, $lte: parseFloat(maxPrice) };
     }
 
@@ -84,8 +85,11 @@ router.get('/', async (req, res) => {
       success: true,
       listings,
       pagination: {
+        page: pageNum,
         currentPage: pageNum,
+        pages: totalPages,
         totalPages,
+        total: totalCount,
         totalCount,
         hasNextPage,
         hasPrevPage,
@@ -169,7 +173,7 @@ router.post('/', authenticateToken, async (req, res) => {
     // Basic validation
     if (!title || !description || !price || bedrooms === undefined || bathrooms === undefined || !address) {
       return res.status(400).json({
-        error: 'Missing required fields: title, description, price, bedrooms, bathrooms, address'
+        error: 'validation failed: Missing required fields: title, description, price, bedrooms, bathrooms, address'
       });
     }
 
@@ -211,6 +215,15 @@ router.post('/', authenticateToken, async (req, res) => {
 
   } catch (error) {
     console.error('Create listing error:', error);
+    
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message).join(', ');
+      return res.status(400).json({ 
+        error: `validation failed: ${validationErrors}` 
+      });
+    }
+    
     res.status(500).json({ error: 'Server error while creating listing' });
   }
 });
@@ -220,6 +233,11 @@ router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const listingId = req.params.id;
     
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(listingId)) {
+      return res.status(400).json({ error: 'Invalid listing ID' });
+    }
+    
     // Find listing and verify ownership
     const listing = await Listing.findById(listingId);
     if (!listing) {
@@ -227,7 +245,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     if (listing.landlord.toString() !== req.landlord._id.toString()) {
-      return res.status(403).json({ error: 'You can only edit your own listings' });
+      return res.status(403).json({ error: 'Unauthorized. You can only edit your own listings' });
     }
 
     // Update listing
@@ -245,6 +263,15 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
   } catch (error) {
     console.error('Update listing error:', error);
+    
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message).join(', ');
+      return res.status(400).json({ 
+        error: `validation failed: ${validationErrors}` 
+      });
+    }
+    
     res.status(500).json({ error: 'Server error while updating listing' });
   }
 });
@@ -254,6 +281,11 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const listingId = req.params.id;
     
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(listingId)) {
+      return res.status(400).json({ error: 'Invalid listing ID' });
+    }
+    
     // Find listing and verify ownership
     const listing = await Listing.findById(listingId);
     if (!listing) {
@@ -261,7 +293,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     if (listing.landlord.toString() !== req.landlord._id.toString()) {
-      return res.status(403).json({ error: 'You can only delete your own listings' });
+      return res.status(403).json({ error: 'Unauthorized. You can only delete your own listings' });
     }
 
     await Listing.findByIdAndDelete(listingId);
@@ -281,6 +313,11 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 router.put('/:id/toggle-status', authenticateToken, async (req, res) => {
   try {
     const listingId = req.params.id;
+    
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(listingId)) {
+      return res.status(400).json({ error: 'Invalid listing ID' });
+    }
     
     // Find listing and verify ownership
     const listing = await Listing.findById(listingId);
