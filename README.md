@@ -1,359 +1,551 @@
 # UCR Housing Platform
 
-A full stack web application for managing off campus housing listings for University of California, Riverside students. The platform provides a RESTful API backend with authentication, listing management, and search capabilities, paired with a React frontend for user interaction.
+A full stack web application for managing student housing listings. The platform provides a RESTful API backend with authentication, CRUD operations, filtering, and pagination capabilities, paired with a React frontend for user interaction.
 
-## Overview
+## Project Overview
 
-This project implements a production ready housing marketplace platform with a focus on backend engineering and system reliability. The application handles user authentication, listing creation and management, advanced filtering, and pagination. The system is designed with security best practices, comprehensive error handling, and automated testing to ensure reliability at scale.
-
-The backend serves as a RESTful API built with Express 5, implementing JWT based authentication, MongoDB data persistence, and middleware for input validation and security. The frontend consumes this API through a centralized service layer, providing a responsive user interface for browsing and managing listings.
+The UCR Housing Platform is a production-ready application that enables landlords to create, manage, and publish housing listings while allowing students to search and filter available properties. The backend implements a robust Express.js API with JWT-based authentication, MongoDB data persistence, comprehensive input validation, and error handling. The system handles database connection retries, implements graceful shutdown procedures, and includes middleware for security, CORS, and request sanitization. The frontend consumes the API through a centralized service layer with automatic environment detection and error handling.
 
 ## Features
 
-**Authentication and Authorization**
-- JWT based authentication with secure token generation and validation
-- Password hashing using bcrypt with 12 salt rounds
-- Protected routes with middleware based access control
-- Account activation and deactivation support
+### Authentication
+- JWT-based authentication with token expiration
+- Password hashing using bcryptjs with 12 salt rounds
+- Account activation status checking
+- Protected routes with middleware-based authorization
 
-**Listing Management**
-- CRUD operations for housing listings with validation
-- Advanced filtering by price range, bedrooms, bathrooms, and amenities
-- Full text search across title, description, and address fields
-- Pagination with configurable page size limits
-- Status management for active, inactive, and rented listings
+### CRUD Operations
+- Create, read, update, and delete listings
+- Retrieve listings by ID with automatic view count increment
+- Fetch authenticated user's listings
+- Toggle listing status between active and inactive
 
-**Data Validation and Security**
-- Input sanitization middleware preventing MongoDB injection attacks
-- Schema level validation with Mongoose
-- Type checking and required field validation
-- CORS configuration for cross origin request handling
-- Security headers implementation
+### Filtering and Search
+- Filter by price range (minPrice, maxPrice)
+- Filter by number of bedrooms and bathrooms
+- Filter by amenities array
+- Full-text search across title, description, and address fields
+- Case-insensitive regex-based search
 
-**System Reliability**
-- Database connection retry logic with exponential backoff
-- Health check endpoints for monitoring
-- Graceful shutdown handling
-- Comprehensive error handling with detailed logging
-- Environment based configuration
+### Pagination
+- Configurable page size (default 20, max 50)
+- Page number validation and bounds checking
+- Total count and page metadata in responses
+- Next and previous page indicators
+
+### Validation and Security
+- Mongoose schema-level validation with custom error messages
+- Input sanitization middleware blocking MongoDB operator injection
+- String input validation and trimming
+- ObjectId format validation
+- CORS configuration with origin whitelisting
+- Security headers (X-Content-Type-Options, X-Frame-Options)
+- Content-Type enforcement and fallback handling
+
+### Error Handling
+- Centralized error handling middleware
+- Database connection state checking with 503 responses
+- Mongoose validation error parsing and formatting
+- Detailed error responses in development mode
+- Network timeout handling with retry logic
 
 ## Tech Stack
 
-**Backend**
-- Node.js 18+ with Express 5.1.0
-- MongoDB with Mongoose 8.16.5 for data modeling
-- JWT for authentication
-- bcryptjs for password hashing
-- Jest with Supertest for testing
-- MongoDB Memory Server for test isolation
+### Backend
+- Node.js (>=18.0.0)
+- Express.js 5.1.0
+- MongoDB with Mongoose 8.16.5
+- JSON Web Tokens (jsonwebtoken 9.0.2)
+- bcryptjs 3.0.2 for password hashing
+- CORS 2.8.5 for cross-origin resource sharing
+- dotenv 17.2.1 for environment variable management
 
-**Frontend**
-- React 19.1.0 with React Router DOM
-- Vite for build tooling
-- Tailwind CSS for styling
-- Vitest for testing
+### Frontend
+- React 19.1.0
+- React Router DOM 7.7.1
+- Vite 7.0.4 for build tooling
+- Tailwind CSS 3.4.17
 
-**Infrastructure**
-- Railway for backend deployment
-- Vercel for frontend deployment
-- MongoDB Atlas for production database
-- Environment variable management
+### Database
+- MongoDB Atlas (production)
+- MongoDB Memory Server 10.1.4 (testing)
+
+### Testing
+- Jest 29.7.0
+- Supertest 7.0.0 for HTTP integration testing
+- MongoDB Memory Server for isolated test database
+
+### Deployment
+- Railway (backend)
+- Vercel (frontend)
+- MongoDB Atlas (production database)
 
 ## Architecture
 
-The application follows a three tier architecture with clear separation of concerns:
+The application follows a layered architecture with clear separation of concerns:
 
-**Presentation Layer**
-The React frontend handles user interface rendering and user interactions. API communication is abstracted through a centralized ApiService class that manages HTTP requests, error handling, and environment based URL configuration.
+### Backend Layers
 
-**Application Layer**
-The Express backend implements RESTful API endpoints organized by resource type. Middleware handles cross cutting concerns including authentication, input sanitization, CORS, and error handling. Route handlers process business logic and coordinate with the data layer.
-
-**Data Layer**
-MongoDB stores application data with Mongoose providing schema validation, indexing, and query optimization. Database models include Listing and Landlord schemas with relationships, virtual properties, and instance methods.
-
-**Request Flow**
-1. Client sends HTTP request to Express server
+**Request Flow:**
+1. Express server receives HTTP request
 2. CORS middleware validates origin
-3. Body parsing middleware processes JSON payloads
-4. Input sanitization middleware removes dangerous operators
-5. Authentication middleware validates JWT tokens for protected routes
-6. Route handler processes business logic
-7. Mongoose models interact with MongoDB
-8. Response formatted and returned to client
+3. Security headers middleware adds protection headers
+4. Content-Type normalization middleware handles misconfigured requests
+5. Body parsing middleware (express.json, express.urlencoded)
+6. Request logging middleware (development)
+7. OPTIONS preflight handler for CORS
+8. Input sanitization middleware removes dangerous operators
+9. Route handlers process business logic
+10. Error handling middleware catches and formats errors
 
-**Error Handling**
-Errors are caught at multiple levels with appropriate HTTP status codes. Validation errors return 400, authentication failures return 401, and server errors return 500. Error responses include structured messages with optional debug information in development.
+**Route Layer:**
+- `/api/auth` - Authentication endpoints (register, login, get current user)
+- `/api/listings` - Listing CRUD operations and filtering
+- `/api/health` - Health check and diagnostic endpoints
+
+**Middleware Layer:**
+- `authenticateToken` - JWT verification and landlord lookup
+- `sanitizeInput` - Recursive object cleaning to prevent operator injection
+- CORS configuration with environment-based origin whitelisting
+- Error handling with development/production mode differentiation
+
+**Model Layer:**
+- `Landlord` - User schema with password hashing pre-save hook
+- `Listing` - Property schema with indexes, virtuals, and instance methods
+- Mongoose schema validation with custom error messages
+- Automatic timestamp management (createdAt, updatedAt)
+
+**Database Layer:**
+- Connection retry logic with up to 5 attempts
+- Connection state monitoring before server startup
+- Graceful shutdown handling (SIGTERM)
+- Environment-based URI selection (Railway internal vs Atlas)
+
+### Frontend Architecture
+
+**Service Layer:**
+- Centralized `ApiService` class handles all HTTP requests
+- Automatic API URL detection (environment variable, localhost, production fallback)
+- Content-Type header enforcement
+- Error parsing and user-friendly error messages
+- Request/response logging for debugging
+
+**State Management:**
+- React Context API for authentication state
+- Token persistence in localStorage
+- Automatic token injection in authenticated requests
+
+### Reliability Mechanisms
+
+- Database connection verification before server startup
+- Connection retry logic with exponential backoff
+- Graceful shutdown on SIGTERM signal
+- Database state checking in route handlers (returns 503 if disconnected)
+- Error boundary patterns in error handling middleware
+- Input validation at multiple layers (middleware, route, model)
 
 ## API Endpoints
 
-**Authentication**
-- `POST /api/auth/register` - Register new landlord account
-- `POST /api/auth/login` - Authenticate and receive JWT token
-- `GET /api/auth/me` - Get current user information (protected)
+### Authentication
 
-**Listings**
-- `GET /api/listings` - Get all active listings with filtering and pagination
-- `GET /api/listings/:id` - Get single listing by ID
-- `GET /api/listings/my` - Get current user's listings (protected)
-- `POST /api/listings` - Create new listing (protected)
-- `PUT /api/listings/:id` - Update listing (protected)
-- `DELETE /api/listings/:id` - Delete listing (protected)
-- `PUT /api/listings/:id/toggle-status` - Toggle listing status (protected)
+**POST /api/auth/register**
+- Creates a new landlord account
+- Input: `email`, `password`, `name` (optional), `phone` (optional)
+- Output: JWT token and landlord object (password excluded)
+- Validates email format, password length, and checks for duplicate emails
 
-**Health and Monitoring**
-- `GET /api/health` - Basic health check
-- `GET /api/health/detailed` - Detailed system status
-- `GET /api/health/env` - Environment variable status
+**POST /api/auth/login**
+- Authenticates existing landlord
+- Input: `email`, `password`
+- Output: JWT token and landlord object
+- Returns 401 for invalid credentials or inactive accounts
 
-**Query Parameters**
-- `page` - Page number for pagination (default: 1)
-- `limit` - Results per page (default: 20, max: 50)
-- `minPrice` - Minimum monthly rent
-- `maxPrice` - Maximum monthly rent
-- `bedrooms` - Exact number of bedrooms
-- `bathrooms` - Exact number of bathrooms
-- `amenities` - Array of amenity strings
-- `search` - Text search across title, description, and address
+**GET /api/auth/me**
+- Returns current authenticated user information
+- Requires: Authorization header with Bearer token
+- Output: Landlord object without password
+
+### Listings
+
+**GET /api/listings**
+- Retrieves paginated list of active listings
+- Query parameters: `page`, `limit`, `minPrice`, `maxPrice`, `bedrooms`, `bathrooms`, `amenities`, `search`
+- Output: Array of listings with pagination metadata
+- Includes landlord name and email via population
+
+**GET /api/listings/my**
+- Retrieves authenticated user's listings
+- Requires: Authorization header with Bearer token
+- Output: Array of listings owned by authenticated landlord
+
+**GET /api/listings/:id**
+- Retrieves single listing by ID
+- Output: Listing object with populated landlord information
+- Automatically increments view count (non-blocking)
+
+**POST /api/listings**
+- Creates new listing
+- Requires: Authorization header with Bearer token
+- Input: `title`, `description`, `price`, `bedrooms`, `bathrooms`, `address`, plus optional fields
+- Output: Created listing object
+- Validates required fields and data types
+
+**PUT /api/listings/:id**
+- Updates existing listing
+- Requires: Authorization header with Bearer token
+- Validates ownership before allowing update
+- Input: Fields to update
+- Output: Updated listing object
+
+**DELETE /api/listings/:id**
+- Deletes listing
+- Requires: Authorization header with Bearer token
+- Validates ownership before allowing deletion
+- Output: Success message
+
+**PUT /api/listings/:id/toggle-status**
+- Toggles listing status between active and inactive
+- Requires: Authorization header with Bearer token
+- Validates ownership
+- Output: Updated listing with new status
+
+### Health
+
+**GET /api/health**
+- Basic health check
+- Output: Server status, database connection state, environment info
+
+**GET /api/health/detailed**
+- Detailed health information
+- Output: Environment variables, database connection details, server uptime, memory usage
+
+**GET /api/health/env**
+- Environment variable status (production diagnostic)
+- Output: Configuration status for critical variables
+
+**GET /api/health/test**
+- Simple connectivity test
+- Output: Success message and CORS origin
 
 ## Data Flow
 
-**Listing Creation Flow**
-1. Client sends POST request with listing data and JWT token
-2. Authentication middleware verifies token and loads landlord
-3. Route handler validates request body structure
-4. Mongoose schema validates field types and constraints
-5. Listing document created with landlord reference
-6. Document saved to MongoDB
-7. Response returned with created listing data
+### Request Processing
 
-**Listing Retrieval Flow**
-1. Client sends GET request with optional query parameters
-2. Route handler parses and validates query parameters
-3. MongoDB query built with filters for price, rooms, amenities
-4. Full text search added if search parameter provided
-5. Pagination applied with skip and limit
-6. Results populated with landlord information
-7. Response includes listings array and pagination metadata
+1. **Client Request**: Frontend makes HTTP request via `ApiService`
+2. **Network Layer**: Request reaches Express server on Railway
+3. **CORS Check**: CORS middleware validates origin against whitelist
+4. **Security Headers**: Middleware adds security headers to response
+5. **Body Parsing**: Express.json() parses JSON body, fallback handles text/plain
+6. **Sanitization**: Input sanitization removes MongoDB operators from body and query
+7. **Authentication**: For protected routes, JWT middleware verifies token and loads landlord
+8. **Route Handler**: Business logic executes (validation, database queries)
+9. **Database Query**: Mongoose performs query with indexes, population, lean() optimization
+10. **Response**: JSON response sent with appropriate status code
+11. **Error Handling**: Any errors caught by middleware and formatted for client
 
-**Authentication Flow**
-1. Client sends credentials to login endpoint
-2. Server validates email and password format
-3. Landlord document retrieved from database
-4. Password compared using bcrypt
-5. JWT token generated with landlord ID
-6. Token returned to client for subsequent requests
+### Database Operations
+
+- **Connection**: Mongoose connects to MongoDB Atlas with timeout and retry options
+- **Queries**: Use Mongoose ODM with schema validation, indexes for performance
+- **Population**: Landlord information populated via reference in Listing queries
+- **Lean Queries**: Listings endpoint uses lean() for better performance
+- **Transactions**: Not currently implemented (single-document operations)
+
+### Authentication Flow
+
+1. User submits credentials via POST /api/auth/login
+2. Server validates email format and finds landlord in database
+3. bcryptjs compares submitted password with hashed password
+4. JWT token generated with landlordId payload and 7-day expiration
+5. Token returned to client and stored in localStorage
+6. Subsequent requests include token in Authorization header
+7. Middleware verifies token signature and expiration
+8. Landlord document loaded from database and attached to request
+9. Route handler accesses req.landlord for authorization checks
+
+## Validation & Security
+
+### Input Validation
+
+**Schema-Level (Mongoose):**
+- Required field validation with custom error messages
+- String length limits (title max 100, description max 2000)
+- Number ranges (price min 0, bedrooms/bathrooms 0-10)
+- Email format validation with regex
+- Enum validation for amenities, lease_terms, parking_type, status
+- URL validation for photo URLs
+
+**Route-Level:**
+- Required field presence checking before database operations
+- Type validation (string, number, ObjectId format)
+- String trimming and whitespace removal
+- Price range validation (non-negative, numeric)
+
+**Middleware-Level:**
+- Recursive object sanitization removing keys starting with `$`
+- Prevents MongoDB operator injection attacks
+- Cleans both request body and query parameters
+
+### Authentication Security
+
+- Passwords hashed with bcryptjs using 12 salt rounds
+- JWT tokens signed with secret key from environment variables
+- Token expiration set to 7 days (configurable)
+- Account activation status checked on login and token verification
+- Password excluded from JSON serialization via toJSON method
+
+### Authorization
+
+- Ownership verification before update/delete operations
+- ObjectId comparison for landlord matching
+- 403 Forbidden response for unauthorized operations
+- Token required for protected routes (401 if missing)
+
+### Network Security
+
+- CORS configured with origin whitelist (production) or open (development)
+- Security headers: X-Content-Type-Options: nosniff, X-Frame-Options: DENY
+- X-Powered-By header removed
+- Content-Type enforcement with fallback for misconfigured clients
 
 ## Testing
 
-The application includes comprehensive test coverage with 82 passing tests across unit and integration test suites. The backend maintains 100% coverage thresholds for critical paths including authentication, data validation, and API endpoints.
+The test suite uses Jest with MongoDB Memory Server for isolated testing:
 
-**Test Structure**
-- Unit tests for Mongoose models validating schema constraints
-- Middleware tests for authentication and input sanitization
-- Integration tests for complete API request response cycles
-- Test database isolation using MongoDB Memory Server
+### Test Structure
 
-**Test Execution**
-```bash
-# Run all tests
-npm test
+**Integration Tests** (`backend/tests/integration/`):
+- `auth.test.js` - Registration, login, token validation (20+ tests)
+- `listings.test.js` - CRUD operations, filtering, pagination, search (60+ tests)
 
-# Backend tests only
-cd backend && npm test
+**Unit Tests** (`backend/tests/unit/`):
+- `middleware.test.js` - Authentication and sanitization middleware
+- `models.test.js` - Mongoose schema validation and methods
 
-# Frontend tests only
-cd frontend && npm run test:run
+**Test Helpers** (`backend/tests/helpers/testHelpers.js`):
+- Factory functions for creating test data
+- Token generation utilities
+- Validation helpers for response structures
 
-# Coverage reports
-npm run test:coverage
-```
+### Test Features
 
-**Testing Strategy**
-Tests follow the AAA pattern (Arrange, Act, Assert) with clear descriptions. Integration tests verify complete workflows including authentication, validation, database operations, and error handling. Test helpers provide reusable functions for creating test data and generating authentication tokens.
+- MongoDB Memory Server provides isolated in-memory database
+- Test isolation via collection cleanup after each test
+- Supertest for HTTP endpoint testing
+- Test environment variable configuration
+- 30-second timeout for database operations
+
+### Test Coverage
+
+- 81 passing tests across 4 test suites
+- Integration tests cover all API endpoints
+- Unit tests validate middleware and model behavior
+- Test helpers ensure consistent test data generation
 
 ## Deployment
 
-The application is deployed across multiple cloud services with environment specific configurations and automated deployments.
+### Backend Deployment (Railway)
 
-**Backend Deployment (Railway)**
-- Automatic deployments from GitHub main branch
-- Environment variables managed through Railway dashboard
-- MongoDB Atlas connection string configured for production
-- Health check endpoints monitored for uptime
-- Server binds to 0.0.0.0 for external connections
-- Graceful shutdown handling for zero downtime deployments
+**Configuration:**
+- Root directory: `backend/`
+- Build command: None (Node.js runtime)
+- Start command: `node index.js`
+- Node.js version: >=18.0.0 (enforced via engines field and npmrc)
 
-**Frontend Deployment (Vercel)**
-- Automatic deployments on git push
-- CDN distribution for global performance
-- Environment variables for API endpoint configuration
-- Custom domain configuration support
+**Environment Variables:**
+- `NODE_ENV=production`
+- `MONGODB_URI` - MongoDB Atlas connection string
+- `JWT_SECRET` - Secret key for JWT signing
+- `PORT` - Server port (Railway provides automatically)
+- `FRONTEND_URL` - Allowed CORS origin
 
-**Database (MongoDB Atlas)**
-- Managed MongoDB cluster with automated backups
-- Connection string authentication
-- Network access restrictions
-- Monitoring and performance metrics
+**Railway-Specific:**
+- `.railwayignore` excludes frontend directory from backend build
+- Server binds to `0.0.0.0` to accept external connections
+- Database connection retry logic handles Railway restarts
+- Graceful shutdown on SIGTERM for zero-downtime deployments
 
-**Environment Configuration**
-Production requires the following variables:
-```
-PORT=3001
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/database
-JWT_SECRET=secure-random-string-minimum-32-characters
-FRONTEND_URL=https://yourdomain.com
-NODE_ENV=production
-```
+### Frontend Deployment (Vercel)
 
-**Deployment Process**
-1. Code changes pushed to GitHub repository
-2. Railway detects changes and triggers backend build
-3. Vercel detects changes and triggers frontend build
-4. Environment variables validated before deployment
-5. Health checks confirm successful deployment
-6. Smoke tests verify critical endpoints
+**Configuration:**
+- Build command: `npm run build` (runs in `frontend/` directory)
+- Output directory: `dist/`
+- Framework preset: Vite
 
-## Local Development
+**Environment Variables:**
+- `VITE_API_URL` - Backend API base URL
 
-**Prerequisites**
-- Node.js version 18 or higher
-- npm version 8 or higher
-- MongoDB instance (local or Atlas connection string)
+**Vercel Configuration:**
+- `vercel.json` configures SPA routing (all routes serve index.html)
+
+### Database (MongoDB Atlas)
+
+- Production database hosted on MongoDB Atlas
+- Connection string stored in Railway environment variables
+- Network access configured for Railway IP ranges
+- Database name: `ucrhousing`
+- Connection options: 30s server selection timeout, 45s socket timeout
+
+## Local Development Setup
+
+### Prerequisites
+
+- Node.js >=18.0.0
+- MongoDB Atlas account (or local MongoDB instance)
 - Git
 
-**Setup Instructions**
+### Installation
 
-1. Clone the repository
+1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/ucrhousing.git
-cd ucrhousing
+git clone <repository-url>
+cd UCRHousing
 ```
 
-2. Install dependencies
+2. Install backend dependencies:
 ```bash
-npm run install:all
+cd backend
+npm install
 ```
 
-3. Configure environment variables
+3. Install frontend dependencies:
+```bash
+cd ../frontend
+npm install
+```
+
+4. Configure environment variables:
 
 Create `backend/.env`:
 ```
-PORT=3001
-MONGODB_URI=mongodb://localhost:27017/ucrhousing
-JWT_SECRET=development-secret-key-change-in-production
-FRONTEND_URL=http://localhost:5173
 NODE_ENV=development
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/ucrhousing
+JWT_SECRET=your-secret-key-here
+FRONTEND_URL=http://localhost:5173
+PORT=3001
 ```
 
-4. Start development servers
+Create `frontend/.env`:
+```
+VITE_API_URL=http://localhost:3001/api
+```
 
-Terminal 1 (Backend):
+5. Start backend server:
 ```bash
 cd backend
 npm run dev
 ```
 
-Terminal 2 (Frontend):
+6. Start frontend development server:
 ```bash
 cd frontend
 npm run dev
 ```
 
-5. Access the application
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3001/api
-- Health Check: http://localhost:3001/api/health
+### Running Tests
 
-**Development Workflow**
-- Backend uses nodemon for automatic server restarts
-- Frontend uses Vite HMR for instant UI updates
-- MongoDB connection retries automatically on failure
-- Console logging provides request and error details
-
-**Database Setup**
-For local development, ensure MongoDB is running:
+**Backend tests:**
 ```bash
-# Using Homebrew on macOS
-brew services start mongodb-community
+cd backend
+npm test
+```
 
-# Or start manually
-mongod --config /usr/local/etc/mongod.conf
+**Frontend tests:**
+```bash
+cd frontend
+npm test
+```
+
+**Test coverage:**
+```bash
+cd backend
+npm run test:coverage
 ```
 
 ## Project Structure
 
 ```
-ucrhousing/
+UCRHousing/
 ├── backend/
 │   ├── config/
-│   │   ├── database.js          # MongoDB connection configuration
-│   │   ├── cors.js              # CORS policy configuration
-│   │   └── environments.js      # Environment-specific settings
+│   │   ├── database.js          # MongoDB connection with retry logic
+│   │   ├── cors.js              # CORS configuration
+│   │   └── environments.js      # Environment-specific config
 │   ├── middleware/
 │   │   ├── auth.js              # JWT authentication middleware
 │   │   ├── sanitize.js          # Input sanitization middleware
-│   │   └── security.js          # Security headers middleware
+│   │   └── security.js         # Security headers middleware
 │   ├── models/
-│   │   ├── Landlord.js          # Landlord schema and methods
-│   │   └── Listing.js           # Listing schema and methods
+│   │   ├── Listing.js          # Listing schema with indexes and methods
+│   │   └── Landlord.js          # Landlord schema with password hashing
 │   ├── routes/
 │   │   ├── auth.js              # Authentication endpoints
-│   │   ├── health.js             # Health check endpoints
-│   │   └── listings.js           # Listing management endpoints
+│   │   ├── listings.js          # Listing CRUD and filtering endpoints
+│   │   └── health.js            # Health check endpoints
 │   ├── tests/
 │   │   ├── integration/         # API integration tests
 │   │   ├── unit/                # Unit tests for models and middleware
-│   │   └── helpers/              # Test utility functions
-│   ├── index.js                  # Application entry point
-│   └── package.json
+│   │   ├── helpers/             # Test utility functions
+│   │   └── setup.js             # Jest and MongoDB Memory Server setup
+│   ├── scripts/
+│   │   └── seed-listings.js     # Database seeding script
+│   ├── index.js                 # Express server entry point
+│   ├── package.json
+│   └── .railwayignore           # Railway deployment configuration
 ├── frontend/
 │   ├── src/
 │   │   ├── components/          # React components
-│   │   ├── contexts/            # React context providers
+│   │   ├── contexts/            # React Context (AuthContext)
 │   │   ├── pages/               # Page components
-│   │   ├── services/            # API service layer
-│   │   └── App.jsx              # Root component
-│   ├── vite.config.js
-│   └── package.json
-└── package.json                  # Monorepo root configuration
+│   │   ├── services/
+│   │   │   └── api.js           # Centralized API service
+│   │   ├── App.jsx              # React Router setup
+│   │   └── main.jsx             # React entry point
+│   ├── package.json
+│   └── vercel.json              # Vercel deployment configuration
+└── scripts/                      # Utility scripts for testing and seeding
 ```
 
 ## Key Implementation Details
 
-**Database Connection Management**
-The application implements robust database connection handling with retry logic. The connection process waits up to 5 seconds with state checking before starting the server, ensuring the database is ready before accepting requests. Connection options include 30 second timeouts for server selection and socket operations, with automatic reconnection on disconnect.
+### Database Optimization
 
-**Input Sanitization**
-A custom middleware recursively traverses request bodies and query parameters to remove MongoDB operator injection attempts. Dangerous operators starting with dollar signs are stripped before processing, preventing NoSQL injection attacks while maintaining data integrity.
+- **Indexes**: Listings collection indexed on `status`, `createdAt`, `landlord`, `price`, `bedrooms`, `bathrooms` for query performance
+- **Lean Queries**: Listings endpoint uses `.lean()` to return plain JavaScript objects instead of Mongoose documents, reducing memory usage
+- **Parallel Queries**: Listings and count queries executed in parallel using `Promise.all()` for faster response times
+- **Population Optimization**: Landlord population uses `select` to limit fields and `lean: true` for performance
 
-**Authentication Middleware**
-JWT tokens are validated with comprehensive error handling for expired tokens, invalid signatures, and missing tokens. The middleware checks token format, verifies signatures, and validates landlord existence and active status before allowing request processing.
+### Error Handling Patterns
 
-**Pagination Implementation**
-Listings endpoint implements efficient pagination using MongoDB skip and limit operations. Total count is calculated in parallel with data retrieval using Promise.all for optimal performance. Page size is capped at 50 results per request to prevent resource exhaustion.
+- **Layered Validation**: Input validated at middleware, route, and model layers
+- **Error Type Detection**: Specific handling for Mongoose errors, MongoDB connection errors, JWT errors
+- **Development vs Production**: Detailed error messages in development, sanitized messages in production
+- **HTTP Status Codes**: Appropriate status codes (400 validation, 401 unauthorized, 403 forbidden, 404 not found, 500 server error, 503 service unavailable)
 
-**Error Response Standardization**
-All error responses follow a consistent structure with error messages, error types, and optional debug information. HTTP status codes are used appropriately: 400 for validation errors, 401 for authentication failures, 403 for authorization issues, 404 for not found, and 500 for server errors.
+### Connection Reliability
 
-**Query Optimization**
-MongoDB indexes are defined on frequently queried fields including status, createdAt, landlord, price, bedrooms, and bathrooms. The Listing model uses lean queries where appropriate to reduce memory overhead and improve response times.
+- **Pre-Startup Verification**: Server waits for database connection before accepting requests
+- **Retry Logic**: Up to 5 connection attempts with 1-second intervals
+- **State Monitoring**: Database ready state checked before route execution
+- **Graceful Degradation**: 503 responses when database is disconnected instead of 500 errors
 
-**Security Headers**
-Security headers are set via middleware including X-Content-Type-Options to prevent MIME type sniffing, X-Frame-Options to prevent clickjacking, and removal of X-Powered-By to reduce information disclosure.
+### Security Implementation
 
-**Environment Detection**
-The API service layer automatically detects the environment and configures the API base URL accordingly. Development mode uses localhost, while production uses the configured Railway URL. This eliminates manual configuration between environments.
+- **Operator Injection Prevention**: Sanitization middleware recursively removes keys starting with `$` from request bodies and query parameters
+- **Password Security**: bcryptjs with 12 salt rounds, passwords never returned in API responses
+- **Token Management**: JWT tokens with expiration, secret key from environment variables
+- **CORS Configuration**: Origin whitelist in production, open in development for testing
 
-## Metrics and Performance
+### Request Processing Optimizations
 
-- Test coverage: 82 tests passing with 100% coverage threshold for critical paths
-- API response time: Average 150ms for listing queries with pagination
-- Database queries: Optimized with indexes reducing query time by 60%
-- Error handling: Comprehensive coverage reducing unhandled exceptions by 95%
-- Input validation: Prevents 100% of MongoDB injection attempts
-- Authentication: JWT validation completes in under 10ms per request
+- **Content-Type Normalization**: Middleware converts `text/plain` to `application/json` for misconfigured clients
+- **Body Size Limits**: 10MB limit for JSON and URL-encoded bodies
+- **Pagination Bounds**: Maximum 50 items per page, minimum 1, prevents resource exhaustion
+- **Non-Blocking Operations**: View count increment uses `.catch()` to avoid blocking response
 
-## License
+### Testing Architecture
 
-ISC
+- **Isolated Test Database**: MongoDB Memory Server provides clean database for each test run
+- **Test Data Factories**: Helper functions generate consistent test data
+- **HTTP Testing**: Supertest simulates HTTP requests without network overhead
+- **Test Isolation**: Collections cleared after each test to prevent test interdependencies
