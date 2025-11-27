@@ -4,9 +4,13 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const connectDB = require('./config/database');
 const { sanitizeInput } = require('./middleware/sanitize');
+const latencyMiddleware = require('./middleware/latency');
 
 // Load environment variables
 dotenv.config();
+
+// Store server startup timestamp for cold vs warm start measurement
+global.serverStartedAt = Date.now();
 
 // Connect to database - wait for connection before starting server
 (async () => {
@@ -131,28 +135,37 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Log incoming requests for debugging - AFTER body parsing
 app.use((req, res, next) => {
   if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-    console.log(`${req.method} ${req.path}`);
-    console.log('Content-Type:', req.headers['content-type']);
-    console.log('Content-Length:', req.headers['content-length']);
-    console.log('Body present:', !!req.body);
-    console.log('Body type:', typeof req.body);
-    
-    // Check if Content-Type is correct
     const contentType = req.headers['content-type'] || '';
-    if (!contentType.includes('application/json')) {
-      console.error('WARNING: Content-Type is not application/json!');
-      console.error('Received Content-Type:', contentType);
-      console.error('Expected: application/json');
-    }
+    const isFileUpload = contentType.includes('multipart/form-data');
+    const isUploadRoute = req.path.startsWith('/api/upload');
     
-    if (req.body) {
-      console.log('Body keys:', Object.keys(req.body));
-      console.log('Body sample:', JSON.stringify(req.body).substring(0, 200));
-    } else {
-      console.error('WARNING: req.body is undefined/null!');
-      console.error('Raw headers:', req.headers);
-      console.error('Request URL:', req.url);
-      console.error('Request path:', req.path);
+    console.log(`${req.method} ${req.path}`);
+    console.log('Content-Type:', contentType);
+    console.log('Content-Length:', req.headers['content-length']);
+    
+    // Skip JSON validation for file uploads
+    if (!isFileUpload && !isUploadRoute) {
+      console.log('Body present:', !!req.body);
+      console.log('Body type:', typeof req.body);
+      
+      // Check if Content-Type is correct (only for non-upload routes)
+      if (!contentType.includes('application/json')) {
+        console.error('WARNING: Content-Type is not application/json!');
+        console.error('Received Content-Type:', contentType);
+        console.error('Expected: application/json');
+      }
+      
+      if (req.body) {
+        console.log('Body keys:', Object.keys(req.body));
+        console.log('Body sample:', JSON.stringify(req.body).substring(0, 200));
+      } else {
+        console.error('WARNING: req.body is undefined/null!');
+        console.error('Raw headers:', req.headers);
+        console.error('Request URL:', req.url);
+        console.error('Request path:', req.path);
+      }
+    } else if (isFileUpload) {
+      console.log('File upload request detected - body will be parsed by multer');
     }
   }
   next();
@@ -184,10 +197,15 @@ app.use((req, res, next) => {
 // Input sanitization
 app.use(sanitizeInput);
 
+// Latency middleware - must be before routes to measure all requests
+app.use(latencyMiddleware);
+
 // API routes
 app.use('/api/health', require('./routes/health'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/listings', require('./routes/listings'));
+app.use('/api/upload', require('./routes/upload'));
+app.use('/api/perf', require('./routes/performance'));
 
 // Basic error handler
 app.use((error, req, res, next) => {
