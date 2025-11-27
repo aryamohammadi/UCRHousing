@@ -56,14 +56,20 @@ class ApiService {
     }
     
     // Force Content-Type to application/json if we have a body (unless it's FormData)
+    // FormData sets its own Content-Type with boundary, so don't override it
     if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
       headers['Content-Type'] = 'application/json'
     } else if (options.body && typeof options.body === 'string') {
       // If body is already a string, still set Content-Type to JSON
       headers['Content-Type'] = 'application/json'
-    } else if (options.method && ['POST', 'PUT', 'PATCH'].includes(options.method)) {
-      // For POST/PUT/PATCH, always set Content-Type to JSON
+    } else if (options.method && ['POST', 'PUT', 'PATCH'].includes(options.method) && !(options.body instanceof FormData)) {
+      // For POST/PUT/PATCH, always set Content-Type to JSON (unless FormData)
       headers['Content-Type'] = 'application/json'
+    }
+    
+    // Remove Content-Type for FormData - let browser set it with boundary
+    if (options.body instanceof FormData) {
+      delete headers['Content-Type']
     }
     
     const config = {

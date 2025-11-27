@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import ApiService from '../services/api'
+import ListingDetail from '../components/ListingDetail'
 
 function Listings() {
   // State for listings and UI
@@ -12,6 +13,9 @@ function Listings() {
   const [searchTerm, setSearchTerm] = useState('')
   const [priceRange, setPriceRange] = useState('')
   const [bedrooms, setBedrooms] = useState('')
+  
+  // State for listing detail view
+  const [selectedListing, setSelectedListing] = useState(null)
 
   // Fetch listings from API
   const fetchListings = async (filters = {}) => {
@@ -238,9 +242,34 @@ function Listings() {
       {!loading && !error && listings.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {listings.map((listing) => (
-            <div key={listing._id} className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden group hover:-translate-y-1">
-              {/* Image Placeholder */}
-              <div className="h-48 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 relative overflow-hidden">
+            <div 
+              key={listing._id} 
+              onClick={() => setSelectedListing(listing)}
+              className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden group hover:-translate-y-1 cursor-pointer"
+            >
+              {/* Image */}
+              {listing.photos && listing.photos.length > 0 ? (
+                <div className="h-48 relative overflow-hidden">
+                  <img
+                    src={listing.photos[0]}
+                    alt={listing.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.target.style.display = 'none'
+                      e.target.nextElementSibling.style.display = 'flex'
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 hidden items-center justify-center">
+                    <div className="text-white text-center">
+                      <svg className="w-16 h-16 mx-auto mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                      <p className="text-sm font-medium opacity-90">{listing.bedrooms} Bed • {listing.bathrooms} Bath</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-48 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/20"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-white text-center">
@@ -300,6 +329,15 @@ function Listings() {
                 <p className="text-gray-600 text-sm line-clamp-3 mb-4 leading-relaxed">
                   {listing.description}
                 </p>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedListing(listing)
+                  }}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium mb-4"
+                >
+                  Read more...
+                </button>
 
                 {/* Amenities */}
                 {listing.amenities && listing.amenities.length > 0 && (
@@ -380,6 +418,14 @@ function Listings() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Listing Detail Modal */}
+      {selectedListing && (
+        <ListingDetail
+          listing={selectedListing}
+          onClose={() => setSelectedListing(null)}
+        />
       )}
       </div>
     </main>

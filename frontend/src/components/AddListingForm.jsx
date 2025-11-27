@@ -19,8 +19,13 @@ function AddListingForm({ onCancel, onSuccess }) {
     parking_type: 'none',
     amenities: [],
     lease_terms: [],
-    available_date: ''
+    available_date: '',
+    photos: []
   })
+  
+  // Photo upload state
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
+  const [photoUploadError, setPhotoUploadError] = useState('')
 
   // UI state
   const [loading, setLoading] = useState(false)
@@ -81,6 +86,76 @@ function AddListingForm({ onCancel, onSuccess }) {
       lease_terms: prev.lease_terms.includes(termValue)
         ? prev.lease_terms.filter(t => t !== termValue)
         : [...prev.lease_terms, termValue]
+    }))
+  }
+
+  // Handle file selection and upload to Cloudinary
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files)
+    if (files.length === 0) return
+
+    // Validate file types
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    const invalidFiles = files.filter(file => !validTypes.includes(file.type))
+    
+    if (invalidFiles.length > 0) {
+      setPhotoUploadError('Please select only image files (JPEG, PNG, or WebP)')
+      return
+    }
+
+    // Validate file sizes (5MB max)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    const oversizedFiles = files.filter(file => file.size > maxSize)
+    
+    if (oversizedFiles.length > 0) {
+      setPhotoUploadError('Some files are too large. Maximum file size is 5MB.')
+      return
+    }
+
+    setUploadingPhotos(true)
+    setPhotoUploadError('')
+
+    try {
+      // Create FormData for file upload
+      const formData = new FormData()
+      files.forEach(file => {
+        formData.append('photos', file)
+      })
+
+      // Upload to backend/Cloudinary
+      const response = await ApiService.request('/upload/photos', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      })
+
+      if (response.success && response.photos) {
+        // Add uploaded photo URLs to form data
+        const newPhotoUrls = response.photos.map(photo => photo.url)
+        setFormData(prev => ({
+          ...prev,
+          photos: [...prev.photos, ...newPhotoUrls]
+        }))
+      } else {
+        setPhotoUploadError('Failed to upload photos. Please try again.')
+      }
+    } catch (error) {
+      console.error('Photo upload error:', error)
+      setPhotoUploadError(error.message || 'Failed to upload photos. Please try again.')
+    } finally {
+      setUploadingPhotos(false)
+      // Reset file input
+      e.target.value = ''
+    }
+  }
+
+  // Handle removing photo
+  const handleRemovePhoto = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
     }))
   }
 
@@ -380,6 +455,81 @@ function AddListingForm({ onCancel, onSuccess }) {
                   placeholder="(555) 123-4567"
                 />
               </div>
+            </div>
+
+            {/* Photos */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Photos
+              </label>
+              <div className="mb-3">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {uploadingPhotos ? (
+                      <>
+                        <svg className="animate-spin h-8 w-8 text-blue-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p className="text-sm text-gray-600">Uploading photos...</p>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p className="text-sm text-gray-600">
+                          <span className="font-semibold">Click to upload</span> or drag and drop
+                        </p>
+                        <p className="text-xs text-gray-500">PNG, JPG, WebP up to 5MB</p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    multiple
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handlePhotoUpload}
+                    disabled={loading || uploadingPhotos}
+                  />
+                </label>
+              </div>
+              {photoUploadError && (
+                <div className="mb-3 p-2 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                  {photoUploadError}
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mb-3">
+                Select multiple images to upload. Photos will be automatically optimized.
+              </p>
+              
+              {/* Photo Preview */}
+              {formData.photos.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {formData.photos.map((photo, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={photo}
+                        alt={`Photo ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-md border border-gray-300"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/150?text=Invalid+URL'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePhoto(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Amenities */}

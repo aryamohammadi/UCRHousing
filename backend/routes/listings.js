@@ -283,7 +283,8 @@ router.post('/', authenticateToken, async (req, res) => {
       contact_email,
       contact_phone,
       parking_type,
-      campus_proximity
+      campus_proximity,
+      photos
     } = body;
 
     // Basic validation
@@ -318,7 +319,8 @@ router.post('/', authenticateToken, async (req, res) => {
       contact_email: contact_email || req.landlord.email,
       contact_phone: contact_phone || req.landlord.phone,
       parking_type,
-      campus_proximity
+      campus_proximity,
+      photos: photos || [] // Add photos array
     });
 
     await listing.save();
