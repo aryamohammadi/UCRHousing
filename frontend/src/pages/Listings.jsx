@@ -275,33 +275,34 @@ function Listings() {
                 </div>
               ) : (
                 <div className="h-48 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 relative overflow-hidden">
-                <div className="absolute inset-0 bg-black/20"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <svg className="w-16 h-16 mx-auto mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    <p className="text-sm font-medium opacity-90">{listing.bedrooms} Bed • {listing.bathrooms} Bath</p>
+                  <div className="absolute inset-0 bg-black/20"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <svg className="w-16 h-16 mx-auto mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                      <p className="text-sm font-medium opacity-90">{listing.bedrooms} Bed • {listing.bathrooms} Bath</p>
+                    </div>
                   </div>
-                </div>
-                
-                {/* Status Badge */}
-                <div className="absolute top-4 right-4">
-                  <span className="bg-white/90 backdrop-blur-sm text-blue-700 text-sm font-semibold px-3 py-1.5 rounded-full border border-blue-200">
-                    {listing.status === 'active' ? 'Available' : listing.status}
-                  </span>
-                </div>
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4">
+                    <span className="bg-white/90 backdrop-blur-sm text-blue-700 text-sm font-semibold px-3 py-1.5 rounded-full border border-blue-200">
+                      {listing.status === 'active' ? 'Available' : listing.status}
+                    </span>
+                  </div>
 
-                {/* Price Badge */}
-                <div className="absolute bottom-4 left-4">
-                  <div className="bg-white/95 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/20">
-                    <p className="text-2xl font-bold text-gray-900">
-                      ${listing.price.toLocaleString()}
-                    </p>
-                    <p className="text-sm text-gray-600 -mt-1">per month</p>
+                  {/* Price Badge */}
+                  <div className="absolute bottom-4 left-4">
+                    <div className="bg-white/95 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/20">
+                      <p className="text-2xl font-bold text-gray-900">
+                        ${listing.price.toLocaleString()}
+                      </p>
+                      <p className="text-sm text-gray-600 -mt-1">per month</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="p-6">
                 {/* Title */}
