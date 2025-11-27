@@ -72,7 +72,8 @@ env/
 *.db
 
 # Old/unused directories (if they exist)
-src/
+# Note: frontend/src/ should NOT be ignored - it contains the React app
+# src/  # Commented out - was blocking frontend/src/
 tailwind.config.js
 # Performance testing files (local only)
 backend/routes/performance.js
