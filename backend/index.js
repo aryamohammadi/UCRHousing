@@ -132,36 +132,33 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use((req, res, next) => {
   if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
     const contentType = req.headers['content-type'] || '';
-    const isFileUpload = contentType.includes('multipart/form-data');
-    const isUploadRoute = req.path.startsWith('/api/upload');
+    // Skip detailed logging for file uploads (multipart/form-data)
+    if (contentType.includes('multipart/form-data')) {
+      console.log(`${req.method} ${req.path} - File upload request`);
+      return next();
+    }
     
     console.log(`${req.method} ${req.path}`);
     console.log('Content-Type:', contentType);
     console.log('Content-Length:', req.headers['content-length']);
+    console.log('Body present:', !!req.body);
+    console.log('Body type:', typeof req.body);
     
-    // Skip JSON validation for file uploads
-    if (!isFileUpload && !isUploadRoute) {
-      console.log('Body present:', !!req.body);
-      console.log('Body type:', typeof req.body);
-      
-      // Check if Content-Type is correct (only for non-upload routes)
-      if (!contentType.includes('application/json')) {
-        console.error('WARNING: Content-Type is not application/json!');
-        console.error('Received Content-Type:', contentType);
-        console.error('Expected: application/json');
-      }
-      
-      if (req.body) {
-        console.log('Body keys:', Object.keys(req.body));
-        console.log('Body sample:', JSON.stringify(req.body).substring(0, 200));
-      } else {
-        console.error('WARNING: req.body is undefined/null!');
-        console.error('Raw headers:', req.headers);
-        console.error('Request URL:', req.url);
-        console.error('Request path:', req.path);
-      }
-    } else if (isFileUpload) {
-      console.log('File upload request detected - body will be parsed by multer');
+    // Check if Content-Type is correct
+    if (!contentType.includes('application/json')) {
+      console.error('WARNING: Content-Type is not application/json!');
+      console.error('Received Content-Type:', contentType);
+      console.error('Expected: application/json');
+    }
+    
+    if (req.body) {
+      console.log('Body keys:', Object.keys(req.body));
+      console.log('Body sample:', JSON.stringify(req.body).substring(0, 200));
+    } else {
+      console.error('WARNING: req.body is undefined/null!');
+      console.error('Raw headers:', req.headers);
+      console.error('Request URL:', req.url);
+      console.error('Request path:', req.path);
     }
   }
   next();
