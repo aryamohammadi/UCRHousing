@@ -80,4 +80,10 @@ backend/middleware/latency.js
 backend/scripts/seed-large.js
 backend/scripts/benchmark-queries.js
 backend/scripts/remove-admin-listings.js
+backend/scripts/add-test-listing.js
 backend/PERFORMANCE_TESTING.md
+
+# Development/testing scripts (local only)
+scripts/seed-listings.js
+scripts/test-create-listing.js
+backend/scripts/seed-listings.js
