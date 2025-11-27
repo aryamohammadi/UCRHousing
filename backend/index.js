@@ -4,13 +4,9 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const connectDB = require('./config/database');
 const { sanitizeInput } = require('./middleware/sanitize');
-const latencyMiddleware = require('./middleware/latency');
 
 // Load environment variables
 dotenv.config();
-
-// Store server startup timestamp for cold vs warm start measurement
-global.serverStartedAt = Date.now();
 
 // Connect to database - wait for connection before starting server
 (async () => {
@@ -197,15 +193,11 @@ app.use((req, res, next) => {
 // Input sanitization
 app.use(sanitizeInput);
 
-// Latency middleware - must be before routes to measure all requests
-app.use(latencyMiddleware);
-
 // API routes
 app.use('/api/health', require('./routes/health'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/listings', require('./routes/listings'));
 app.use('/api/upload', require('./routes/upload'));
-app.use('/api/perf', require('./routes/performance'));
 
 // Basic error handler
 app.use((error, req, res, next) => {
