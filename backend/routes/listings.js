@@ -86,19 +86,19 @@ router.get('/', async (req, res) => {
     let listings, totalCount;
     try {
       [listings, totalCount] = await Promise.all([
-        Listing.find(filter)
+      Listing.find(filter)
           .populate({
             path: 'landlord',
             select: 'name email',
             // Handle missing landlord references gracefully
             options: { lean: true }
           })
-          .sort({ createdAt: -1 })
-          .skip(skip)
+        .sort({ createdAt: -1 })
+        .skip(skip)
           .limit(limitNum)
           .lean(), // Use lean() for better performance and to avoid Mongoose document issues
-        Listing.countDocuments(filter)
-      ]);
+      Listing.countDocuments(filter)
+    ]);
       console.log(`Found ${listings.length} listings, total count: ${totalCount}`);
     } catch (queryError) {
       console.error('Database query failed:', queryError.message);
