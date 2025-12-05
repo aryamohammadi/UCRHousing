@@ -195,6 +195,7 @@ app.use('/api/health', require('./routes/health'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/listings', require('./routes/listings'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/stats', require('./routes/stats'));
 
 // Basic error handler
 app.use((error, req, res, next) => {
