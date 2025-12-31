@@ -8,6 +8,8 @@ import Home from './pages/Home'
 import Listings from './pages/Listings'
 import LandlordAuth from './pages/LandlordAuth'
 import Dashboard from './pages/Dashboard'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/listings" element={<Listings />} />
               <Route path="/landlord" element={<LandlordAuth />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
               <Route 
                 path="/dashboard" 
                 element={

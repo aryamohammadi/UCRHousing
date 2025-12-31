@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import ApiService from '../services/api'
 
@@ -15,6 +15,7 @@ function LandlordAuth() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
 
   const { login, isAuthenticated, loading: authLoading } = useAuth()
   const navigate = useNavigate()
@@ -153,6 +154,7 @@ function LandlordAuth() {
     setIsLogin(!isLogin)
     setError('')
     setSuccess('')
+    setAgreedToTerms(false)
     setFormData({
       email: '',
       password: '',
@@ -277,11 +279,35 @@ function LandlordAuth() {
             </>
           )}
 
+          {/* Terms Checkbox - Only show for registration */}
+          {!isLogin && (
+            <div className="flex items-start">
+              <input
+                type="checkbox"
+                id="terms-checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                disabled={loading}
+                className="mt-1 h-4 w-4 text-navy-900 focus:ring-navy-700 border-gray-400 rounded disabled:opacity-50"
+              />
+              <label htmlFor="terms-checkbox" className="ml-2 text-sm text-gray-600">
+                I agree to the{' '}
+                <Link to="/terms" className="text-navy-700 hover:underline">
+                  Terms and Conditions
+                </Link>
+                {' '}and{' '}
+                <Link to="/privacy" className="text-navy-700 hover:underline">
+                  Privacy Policy
+                </Link>
+              </label>
+            </div>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-navy-900 text-white py-2 px-4 rounded hover:bg-navy-800 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+            disabled={loading || (!isLogin && !agreedToTerms)}
+            className="w-full bg-navy-900 text-white py-2 px-4 rounded hover:bg-navy-800 font-medium disabled:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-h-[44px]"
           >
             {loading ? (
               <>

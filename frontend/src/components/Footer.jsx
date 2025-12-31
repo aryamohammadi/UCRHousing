@@ -40,6 +40,17 @@ function Footer() {
             </Link>
           </nav>
 
+          {/* Legal Links */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
+            <Link to="/privacy" className="text-white/60 hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+            <span className="text-white/40">•</span>
+            <Link to="/terms" className="text-white/60 hover:text-white transition-colors">
+              Terms
+            </Link>
+          </div>
+
           {/* Credits */}
           <div className="pt-6 border-t border-white/10 space-y-2">
             <p className="text-sm text-white/60">
