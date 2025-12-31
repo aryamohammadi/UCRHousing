@@ -200,7 +200,7 @@ function LandlordAuth() {
               value={formData.email}
               onChange={handleInputChange}
               disabled={loading}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="your@email.com"
               required
             />
@@ -217,7 +217,7 @@ function LandlordAuth() {
               value={formData.password}
               onChange={handleInputChange}
               disabled={loading}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="••••••••"
               required
             />
@@ -237,7 +237,7 @@ function LandlordAuth() {
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="••••••••"
                   required
                 />
@@ -254,7 +254,7 @@ function LandlordAuth() {
                   value={formData.name}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="John Doe"
                 />
               </div>
@@ -270,7 +270,7 @@ function LandlordAuth() {
                   value={formData.phone}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="(555) 123-4567"
                 />
               </div>
@@ -281,7 +281,7 @@ function LandlordAuth() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-slate-800 text-white py-2 px-4 rounded hover:bg-slate-900 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+            className="w-full bg-navy-900 text-white py-2 px-4 rounded hover:bg-navy-800 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {loading ? (
               <>
@@ -302,7 +302,7 @@ function LandlordAuth() {
           <button
             onClick={toggleMode}
             disabled={loading}
-            className="text-slate-800 hover:text-slate-900 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
+            className="text-navy-900 hover:text-navy-900 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
           >
             {isLogin 
               ? "Don't have an account? Sign up" 

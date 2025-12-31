@@ -198,12 +198,12 @@ function Dashboard() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-slate-800 text-white py-16">
+      <div className="bg-navy-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4">My Dashboard</h1>
-              <p className="text-xl text-gray-300">
+              <p className="text-xl text-gray-400">
                 Welcome back, {user?.name || user?.email}! Manage your house listings here.
               </p>
             </div>
@@ -217,7 +217,7 @@ function Dashboard() {
                   </div>
                   <div>
                     <p className="text-lg font-semibold">{user?.name || 'Landlord'}</p>
-                    <p className="text-sm text-gray-300">{user?.email}</p>
+                    <p className="text-sm text-gray-400">{user?.email}</p>
                   </div>
                 </div>
               </div>
@@ -238,7 +238,7 @@ function Dashboard() {
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-          <div className="bg-slate-800 p-4">
+          <div className="bg-navy-900 p-4">
             <div className="flex items-center justify-between">
               <div className="bg-white/20 w-12 h-12 rounded flex items-center justify-center">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -326,7 +326,7 @@ function Dashboard() {
           {/* Loading State */}
           {loading && (
             <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-slate-800 mb-4"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-navy-900 mb-4"></div>
               <p className="text-gray-600">Loading your listings...</p>
             </div>
           )}
@@ -403,7 +403,7 @@ function Dashboard() {
                         </button>
                         <button
                           onClick={() => handleEditListing(listing)}
-                          className="text-slate-800 hover:text-slate-900"
+                          className="text-navy-900 hover:text-navy-800"
                         >
                           Edit
                         </button>
@@ -435,7 +435,7 @@ function Dashboard() {
                 <p className="text-gray-500 mb-6">Start by creating your first house listing to help UCR students find housing!</p>
                 <button 
                   onClick={handleShowAddForm}
-                  className="bg-slate-800 text-white px-6 py-2 rounded hover:bg-slate-900 font-medium"
+                  className="bg-navy-900 text-white px-6 py-2 rounded hover:bg-navy-800 font-medium"
                 >
                   Create Your First Listing
                 </button>

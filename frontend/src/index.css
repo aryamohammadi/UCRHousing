@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* PRIMARY PALETTE - Navy */
+    --navy-900: #1e3a5f;
+    --navy-800: #234b7a;
+    --navy-700: #2d5f99;
+    
+    /* SECONDARY/ACCENT - Gold */
+    --gold-500: #C9A227;
+    --gold-600: #B8921F;
+    
+    /* NEUTRALS */
+    --gray-900: #1A1A1A;
+    --gray-600: #4B5563;
+    --gray-400: #9CA3AF;
+    --gray-100: #F3F4F6;
+    --gray-50: #F9FAFB;
+    --white: #FFFFFF;
+    
+    /* SEMANTIC */
+    --success: #059669;
+    --warning: #D97706;
+    --error: #DC2626;
+  }
+}

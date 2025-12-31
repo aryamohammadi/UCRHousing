@@ -1,0 +1,58 @@
+{
+  "timestamp": "2025-12-09T10:07:04.268Z",
+  "claims": {
+    "compoundIndexes": {
+      "status": "passed",
+      "details": {
+        "found": 4,
+        "total": 4,
+        "foundIndexes": [
+          {
+            "status": 1,
+            "price": 1,
+            "bedrooms": 1
+          },
+          {
+            "status": 1,
+            "price": 1,
+            "bathrooms": 1
+          },
+          {
+            "status": 1,
+            "bedrooms": 1,
+            "bathrooms": 1
+          },
+          {
+            "status": 1,
+            "price": 1,
+            "bedrooms": 1,
+            "bathrooms": 1
+          }
+        ],
+        "missingIndexes": []
+      }
+    },
+    "queryLatency": {
+      "status": "partial",
+      "details": {
+        "avg": 87.82472836000005,
+        "min": 83.130167,
+        "max": 102.512125,
+        "iterations": 100
+      }
+    },
+    "apiBenchmark": {
+      "status": "skipped",
+      "details": {
+        "error": "autocannon not installed"
+      }
+    },
+    "stressTest": {
+      "status": "passed",
+      "details": {
+        "listingCount": 10002,
+        "target": 10000
+      }
+    }
+  }
+}

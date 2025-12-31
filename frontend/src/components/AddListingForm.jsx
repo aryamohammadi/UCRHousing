@@ -277,7 +277,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   value={formData.title}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                   placeholder="e.g., Spacious 2BR Apartment Near UCR Campus"
                   required
                 />
@@ -294,7 +294,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   onChange={handleInputChange}
                   disabled={loading}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                   placeholder="Describe the property, nearby amenities, transportation, etc."
                   required
                 />
@@ -311,7 +311,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   value={formData.address}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                   placeholder="Full address including city and ZIP code"
                   required
                 />
@@ -330,7 +330,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   disabled={loading}
                   min="0"
                   step="1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                   placeholder="1200"
                   required
                 />
@@ -347,7 +347,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   value={formData.distance_from_campus}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                   placeholder="e.g., 0.5 miles, 10 minute walk"
                 />
               </div>
@@ -365,7 +365,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   disabled={loading}
                   min="0"
                   max="10"
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                   required
                 />
               </div>
@@ -384,7 +384,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   min="0"
                   max="10"
                   step="0.5"
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                   required
                 />
               </div>
@@ -399,7 +399,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   value={formData.parking_type}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                 >
                   <option value="none">No Parking</option>
                   <option value="street">Street Parking</option>
@@ -420,7 +420,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   value={formData.available_date}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                 />
               </div>
 
@@ -435,7 +435,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   value={formData.contact_email}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                   placeholder="Leave blank to use your account email"
                 />
               </div>
@@ -451,7 +451,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                   value={formData.contact_phone}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 disabled:bg-gray-100"
                   placeholder="(555) 123-4567"
                 />
               </div>
@@ -463,11 +463,11 @@ function AddListingForm({ onCancel, onSuccess }) {
                 Photos
               </label>
               <div className="mb-3">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-400 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     {uploadingPhotos ? (
                       <>
-                        <svg className="animate-spin h-8 w-8 text-slate-800 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-8 w-8 text-navy-900 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -512,7 +512,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                       <img
                         src={photo}
                         alt={`Photo ${index + 1}`}
-                        className="w-full h-24 object-cover rounded border border-gray-300"
+                        className="w-full h-24 object-cover rounded border border-gray-400"
                         onError={(e) => {
                           e.target.src = 'https://via.placeholder.com/150?text=Invalid+URL'
                         }}
@@ -545,7 +545,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                       checked={formData.amenities.includes(amenity.value)}
                       onChange={() => handleAmenityChange(amenity.value)}
                       disabled={loading}
-                      className="mr-2 h-4 w-4 text-slate-800 focus:ring-slate-500 border-gray-300 rounded disabled:opacity-50"
+                      className="mr-2 h-4 w-4 text-navy-900 focus:ring-navy-700 border-gray-400 rounded disabled:opacity-50"
                     />
                     <span className="text-sm text-gray-700">{amenity.label}</span>
                   </label>
@@ -566,7 +566,7 @@ function AddListingForm({ onCancel, onSuccess }) {
                       checked={formData.lease_terms.includes(term.value)}
                       onChange={() => handleLeaseTermChange(term.value)}
                       disabled={loading}
-                      className="mr-2 h-4 w-4 text-slate-800 focus:ring-slate-500 border-gray-300 rounded disabled:opacity-50"
+                      className="mr-2 h-4 w-4 text-navy-900 focus:ring-navy-700 border-gray-400 rounded disabled:opacity-50"
                     />
                     <span className="text-sm text-gray-700">{term.label}</span>
                   </label>
@@ -580,14 +580,14 @@ function AddListingForm({ onCancel, onSuccess }) {
                 type="button"
                 onClick={onCancel}
                 disabled={loading}
-                className="px-6 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50"
+                className="px-6 py-2 border border-gray-400 rounded text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-slate-800 text-white rounded hover:bg-slate-900 font-medium disabled:bg-gray-400 flex items-center"
+                className="px-6 py-2 bg-navy-900 text-white rounded hover:bg-navy-800 font-medium disabled:bg-gray-400 flex items-center"
               >
                 {loading && (
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

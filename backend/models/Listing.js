@@ -151,6 +151,13 @@ listingSchema.index({ landlord: 1 });
 listingSchema.index({ price: 1 });
 listingSchema.index({ bedrooms: 1, bathrooms: 1 });
 
+// Compound indexes for optimized filtered queries (status + price + room filters)
+// These indexes significantly improve query performance for common filter combinations
+listingSchema.index({ status: 1, price: 1, bedrooms: 1 });
+listingSchema.index({ status: 1, price: 1, bathrooms: 1 });
+listingSchema.index({ status: 1, bedrooms: 1, bathrooms: 1 });
+listingSchema.index({ status: 1, price: 1, bedrooms: 1, bathrooms: 1 });
+
 // Virtual for price formatting
 listingSchema.virtual('formattedPrice').get(function() {
   return `$${this.price.toLocaleString()}`;

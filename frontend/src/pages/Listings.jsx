@@ -98,10 +98,10 @@ function Listings() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-slate-800 text-white py-16">
+      <div className="bg-navy-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Available Housing</h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
             Discover quality off-campus housing options near UC Riverside
           </p>
         </div>
@@ -129,7 +129,7 @@ function Listings() {
                   placeholder="Search by location, property type, description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 bg-gray-50 focus:bg-white transition-colors"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 bg-gray-50 focus:bg-white transition-colors"
                 />
               </div>
             </div>
@@ -142,7 +142,7 @@ function Listings() {
               <select
                 value={priceRange}
                 onChange={(e) => setPriceRange(e.target.value)}
-                className="block w-full px-3 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 bg-gray-50 focus:bg-white transition-colors"
+                className="block w-full px-3 py-3 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 bg-gray-50 focus:bg-white transition-colors"
               >
                 <option value="">Any Price</option>
                 <option value="under1000">Under $1,000</option>
@@ -160,7 +160,7 @@ function Listings() {
               <select
                 value={bedrooms}
                 onChange={(e) => setBedrooms(e.target.value)}
-                className="block w-full px-3 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-slate-500 focus:border-slate-500 bg-gray-50 focus:bg-white transition-colors"
+                className="block w-full px-3 py-3 border border-gray-400 rounded focus:ring-2 focus:ring-navy-700 focus:border-navy-700 bg-gray-50 focus:bg-white transition-colors"
               >
                 <option value="">Any Bedrooms</option>
                 <option value="1">1 Bedroom</option>
@@ -180,14 +180,14 @@ function Listings() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 font-medium transition-colors"
+                className="px-6 py-2.5 border border-gray-400 text-gray-700 rounded hover:bg-gray-50 font-medium transition-colors"
               >
                 Reset
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-2.5 bg-slate-800 text-white rounded hover:bg-slate-900 disabled:bg-gray-400 font-medium transition-colors flex items-center"
+                className="px-8 py-2.5 bg-navy-900 text-white rounded hover:bg-navy-800 disabled:bg-gray-400 font-medium transition-colors flex items-center"
               >
                 {loading ? (
                   <>
@@ -233,7 +233,7 @@ function Listings() {
       {/* Loading State */}
       {loading && (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800 mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-900 mb-4"></div>
           <p className="text-gray-600">Loading listings...</p>
         </div>
       )}
@@ -264,7 +264,7 @@ function Listings() {
                       e.target.nextElementSibling.style.display = 'flex'
                     }}
                   />
-                  <div className="absolute inset-0 bg-slate-700 hidden items-center justify-center">
+                  <div className="absolute inset-0 bg-navy-900 hidden items-center justify-center">
                     <div className="text-white text-center">
                       <svg className="w-16 h-16 mx-auto mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -274,7 +274,7 @@ function Listings() {
                   </div>
                 </div>
               ) : (
-                <div className="h-48 bg-slate-700 relative overflow-hidden">
+                <div className="h-48 bg-navy-900 relative overflow-hidden">
                   <div className="absolute inset-0 bg-black/20"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-white text-center">
@@ -287,7 +287,7 @@ function Listings() {
                   
                   {/* Status Badge */}
                   <div className="absolute top-4 right-4">
-                    <span className="bg-white/90 backdrop-blur-sm text-slate-800 text-sm font-semibold px-3 py-1.5 rounded border border-slate-300">
+                    <span className="bg-white/90 backdrop-blur-sm text-navy-900 text-sm font-semibold px-3 py-1.5 rounded border border-gray-400">
                       {listing.status === 'active' ? 'Available' : listing.status}
                     </span>
                   </div>
@@ -306,7 +306,7 @@ function Listings() {
 
               <div className="p-6">
                 {/* Title */}
-                <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-slate-800 transition-colors">
+                <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-navy-900 transition-colors">
                   {listing.title}
                 </h3>
 
@@ -321,7 +321,7 @@ function Listings() {
                       <span className="text-sm font-medium">{listing.address}</span>
                     </div>
                     {listing.distance_from_campus && (
-                      <div className="flex items-center text-slate-700">
+                      <div className="flex items-center text-navy-900">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                         </svg>
@@ -340,7 +340,7 @@ function Listings() {
                     e.stopPropagation()
                     setSelectedListing(listing)
                   }}
-                  className="text-slate-800 hover:text-slate-900 text-sm font-medium mb-4"
+                  className="text-navy-900 hover:text-navy-900 text-sm font-medium mb-4"
                 >
                   Read more...
                 </button>
@@ -350,7 +350,7 @@ function Listings() {
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
                       {listing.amenities.slice(0, 3).map((amenity) => (
-                        <span key={amenity} className="bg-slate-50 text-slate-800 text-xs font-medium px-2.5 py-1 rounded border border-slate-300">
+                        <span key={amenity} className="bg-gray-50 text-navy-900 text-xs font-medium px-2.5 py-1 rounded border border-gray-400">
                           {amenity.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </span>
                       ))}
@@ -366,7 +366,7 @@ function Listings() {
                 {/* Contact & Stats */}
                 <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                   <div className="flex items-center">
-                    <div className="bg-slate-800 w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                    <div className="bg-navy-900 w-10 h-10 rounded-full flex items-center justify-center mr-3">
                       <span className="text-white text-sm font-bold">
                         {(listing.landlord?.name || 'Landlord').charAt(0).toUpperCase()}
                       </span>
@@ -417,7 +417,7 @@ function Listings() {
             {(searchTerm || priceRange || bedrooms) && (
               <button 
                 onClick={handleReset}
-                className="bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-900 font-medium"
+                className="bg-navy-900 text-white px-4 py-2 rounded hover:bg-navy-800 font-medium"
               >
                 Clear Filters
               </button>
