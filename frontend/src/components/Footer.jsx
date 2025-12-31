@@ -46,6 +46,9 @@ function Footer() {
               In partnership with <span className="font-medium text-white/80">HighlanderHousing</span>
             </p>
             <p className="text-sm text-white/60">
+              Contact: <a href="mailto:dormduos@gmail.com" className="text-white/60 hover:text-white transition-colors">dormduos@gmail.com</a>
+            </p>
+            <p className="text-sm text-white/60">
               © {new Date().getFullYear()} DormDuos
             </p>
           </div>
